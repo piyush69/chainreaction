@@ -1,124 +1,89 @@
-// Need to check for colour.
-
-
-package App;
-
-
-
-class Player
-{
-	int colour;
-}
-
-class Cell
-{
-	int criticalMass;
-	int numberOfOrbs;
-	int playerNo;
-	
-	public Cell(int criticalMass)
-	{
-		this.criticalMass = criticalMass;
-		numberOfOrbs = 0;
-		playerNo = 0;
-	}
-	
-	// Returns true if the stack explodes; false otherwise.
-	public boolean addOrbAndCheckExplosion(int playerNo)
-	{
-		this.playerNo = playerNo;
-		// Can also keep ==.
-		if(++numberOfOrbs >= criticalMass)
-		{
-			numberOfOrbs = 0;
-			return true;
-		}
-		return false;
-	}
-	
-	public int getPlayerNo()
-	{
-		return playerNo;
-	}
-}
-
-class Board
-{
-	private int m;
-	private int n;
-	private Cell[][] board;
-	
-	public Board(int m, int n)
-	{
-		this.m = m;
-		this.n = n;
-		board = new Cell[m][n];
-	}
-	
-	// Adds orb at the given location.
-	// Returns true if addition of orb was successful; false otherwise.
-	public boolean addOrb(int i, int j, int playerNo)
-	{
-		try
-		{
-			int playerAtCell = board[i][j].getPlayerNo();
-			if(playerAtCell == 0 || playerAtCell == playerNo)
-			{
-				// Invokes explosiveAddOrb on all 4 adjacent cells.
-				// Non-existence of cells handled in catch.
-				if(board[i][j].addOrbAndCheckExplosion(playerNo));
-				{
-					explosiveAddOrb(i - 1, j, playerNo);
-					explosiveAddOrb(i, j - 1, playerNo);
-					explosiveAddOrb(i + 1, j, playerNo);
-					explosiveAddOrb(i, j + 1, playerNo);
-				}
-				
-				return true;
-			}
-			
-			return false;
-		}
-		
-		// To be done.
-		catch(ArrayIndexOutOfBoundsException e)
-		{
-			return false;
-		}
-	}
-	
-	public boolean explosiveAddOrb(int i, int j, int playerNo)
-	{
-		try
-		{
-			int playerAtCell = board[i][j].getPlayerNo();
-			{
-				// Invokes explosiveAddOrb on all 4 adjacent cells.
-				// Non-existence of cells handled in catch.
-				if(board[i][j].addOrbAndCheckExplosion(playerNo));
-				{
-					explosiveAddOrb(i - 1, j, playerNo);
-					explosiveAddOrb(i, j - 1, playerNo);
-					explosiveAddOrb(i + 1, j, playerNo);
-					explosiveAddOrb(i, j + 1, playerNo);
-				}
-				
-				return true;
-			}
-		}
-		
-		// To be done.
-		catch(ArrayIndexOutOfBoundsException e)
-		{
-			return false;
-		}
-	}
-}
+package chainreaction;
 
 public class Game
 {
-	public static void main(String[] args)
-	{
-		
-	}
+    private Board board;
+    private int numberOfPlayers;
+    private Player[] players;
+    private String[] playerColours;
+    private int numberOfPlayersAlive;
+
+    public Game(int m, int n, int numberOfPlayers, String[] playerColours)
+    {
+        // board = new Board(m, n); // To be restored
+        this.numberOfPlayers = numberOfPlayers;
+        this.playerColours = playerColours;
+        players = new Player[numberOfPlayers];
+        for(int i = 0; i < numberOfPlayers; i++)
+            players[i] = new Player(playerColours[i], this);
+        numberOfPlayersAlive = numberOfPlayers;
+
+        // To be removed
+        board = new Board(m, n, players);
+    }
+
+    public Board getBoard()
+    {
+        return board;
+    }
+
+    public void play()
+    {
+        boolean done = false;
+
+        while(!done)
+        {
+            for(int i = 0; i < numberOfPlayers; i++)
+            {
+                if(players[i].isAlive())
+                {
+                    if(numberOfPlayersAlive == 1)
+                    {
+                        // Player has won. Terminate.
+                        System.out.println("Player " + (i + 1) + " wins!");
+                        done = true;
+                        break;
+                    }
+
+                    // To be removed.
+                    System.out.println("Player " + (i + 1));
+
+                    players[i].takeTurn();
+
+                    // To be removed.
+                    board.display();
+                }
+            }
+        }
+    }
+
+    private void serialize()
+    {
+        // Code to be written.
+    }
+
+    private void deserialize()
+    {
+        // Code to be written.
+    }
+
+    public void pause()
+    {
+        // Code to be written.
+    }
+
+    public void undo()
+    {
+        // Code to be written.
+    }
+
+    public void restart()
+    {
+        // Code to be written.
+    }
+
+    public void exit()
+    {
+        // Code to be written.
+    }
 }
