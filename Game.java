@@ -6,7 +6,6 @@ public class Game
     private int numberOfPlayers;
     private Player[] players;
     private String[] playerColours;
-    private int numberOfPlayersAlive;
 
     public Game(int m, int n, int numberOfPlayers, String[] playerColours)
     {
@@ -16,7 +15,6 @@ public class Game
         players = new Player[numberOfPlayers];
         for(int i = 0; i < numberOfPlayers; i++)
             players[i] = new Player(playerColours[i], this);
-        numberOfPlayersAlive = numberOfPlayers;
 
         // To be removed
         board = new Board(m, n, players);
@@ -37,6 +35,13 @@ public class Game
             {
                 if(players[i].isAlive())
                 {
+                    int numberOfPlayersAlive = 0;
+                    for(int j = 0; j < numberOfPlayers; j++)
+                    {
+                        if(players[j].isAlive())
+                            numberOfPlayersAlive++;
+                    }
+
                     if(numberOfPlayersAlive == 1)
                     {
                         // Player has won. Terminate.
