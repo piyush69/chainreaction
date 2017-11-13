@@ -41,6 +41,7 @@ public class Board
 
     public void explode(int i, int j, Player player, int explodeDepth)
     {
+        player.decrementNumberOfCellsOccupied();
         if(i > 0)
             explosiveAddOrb(i - 1, j, player, explodeDepth);
         if(i < m - 1)
