@@ -1,6 +1,8 @@
 package chainreaction;
 
-public class Cell
+import java.io.*;
+
+public class Cell implements Serializable
 {
     private int row;
     private int col;
@@ -59,6 +61,7 @@ public class Cell
         if(++numberOfOrbs >= criticalMass)
         {
             numberOfOrbs = 0;
+            this.getPlayerInControl().decrementNumberOfCellsOccupied();
             playerInControl = null;
             return true;
         }
