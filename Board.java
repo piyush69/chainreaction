@@ -142,6 +142,8 @@ public class Board implements Serializable
                     System.out.print("a ");
                 else if(board[i][j].getPlayerNoInControl() == 1)
                     System.out.print("b ");
+                else if(board[i][j].getPlayerNoInControl() == 2)
+                    System.out.print("c ");
                 else
                     System.out.print("_ ");
             }

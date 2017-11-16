@@ -44,7 +44,7 @@ public class Game implements Serializable
         for (int i = 0; i < maxVersionCount; i++)
         {
             boardVersions[i] = new Board(m, n, players);
-            currentPlayerVersions[i] = 0;
+            currentPlayerVersions[i] = -1;
             // for (int j = 0; j < numberOfPlayers; j++)
             // {
             //     allPlayerDataVersions[i][j] = new Player(playerColours[j], this, j);
@@ -118,7 +118,7 @@ public class Game implements Serializable
                         if(players[i].getNumberOfCellsOccupied() == 0 && players[i].gotFairChance() == true)
                             players[i].kill();
                     }
-                    
+
                     // To be removed.
                     board.display();
                 }
@@ -272,12 +272,12 @@ public class Game implements Serializable
             ObjectInputStream inCurrentPlayer = new ObjectInputStream (fileCurrentPlayer2);
 
             board = (Board)inBoard.readObject();
-            currentPlayer = (int)inCurrentPlayer.readObject() - 2;
+            currentPlayer = (int)inCurrentPlayer.readObject();
 
-            if(currentPlayer == -2)
-            {
-                currentPlayer += numberOfPlayers;
-            }
+            // if(currentPlayer == -2)
+            // {
+            //     currentPlayer += numberOfPlayers;
+            // }
 
             inBoard.close();
             inCurrentPlayer.close();

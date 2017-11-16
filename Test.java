@@ -18,10 +18,10 @@ public class Test
         versions = new Game[1000];
         for (int i = 0; i < 1000 ; i++)
         {
-            versions[i] = new Game(9, 6, 2, colours);
+            versions[i] = new Game(9, 6, 3, colours);
         }
 
-        Game game = new Game(9, 6, 2, colours);
+        Game game = new Game(9, 6, 3, colours);
         game.play();
     }
 
