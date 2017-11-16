@@ -1,8 +1,9 @@
 package chainreaction;
 
 import java.util.*;
+import java.io.*;
 
-public class Board
+public class Board implements Serializable
 {
     private int m;
     private int n;
@@ -41,7 +42,6 @@ public class Board
 
     public void explode(int i, int j, Player player, int explodeDepth)
     {
-        player.decrementNumberOfCellsOccupied();
         if(i > 0)
             explosiveAddOrb(i - 1, j, player, explodeDepth);
         if(i < m - 1)
@@ -62,7 +62,7 @@ public class Board
 
         Cell cell = board[i][j];
 
-        if(cell.getPlayerInControl() != null & cell.getPlayerInControl() != player)
+        if(cell.getPlayerInControl() != null && cell.getPlayerInControl() != player)
         {
             // Throw exception.
             return false;
@@ -122,6 +122,7 @@ public class Board
             for(int j = 0; j < n; j++)
             {
                 System.out.print(board[i][j].getNumberOfOrbs());
+                //System.out.print(board[i][j].getPlayerInControl());
                 if(board[i][j].getPlayerInControl() == players[0])
                     System.out.print("a ");
                 else if(board[i][j].getPlayerInControl() == players[1])

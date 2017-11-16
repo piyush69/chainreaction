@@ -1,8 +1,9 @@
 package chainreaction;
 
 import java.util.*;
+import java.io.*;
 
-public class Player
+public class Player implements Serializable
 {
     private String colour;
     private int numberOfCellsOccupied;
@@ -62,9 +63,20 @@ public class Player
             System.out.println("Enter i and j");
             int i = input.nextInt();
             int j = input.nextInt();
-            if(!currentGame.getBoard().addOrb(i, j, this))
+            if(i == -1 && j == -1)
+            {
+                currentGame.undo();
+                done = true;
+            }
+            else if(i == -2 && j == -2) //to be placed somewhere else
+            {
+                currentGame.restart();
+                done = true;
+            }
+            else if(!currentGame.getBoard().addOrb(i, j, this))
                 System.out.println("Try again");
             else
+                currentGame.saveState();
                 done = true;
         }
     }
