@@ -6,7 +6,7 @@ public class Cell implements Serializable
 {
     private int row;
     private int col;
-    private Player playerInControl;
+    private int playerNoInControl;
     private int criticalMass;
     private int numberOfOrbs;
     private int explodeDepth;
@@ -15,7 +15,7 @@ public class Cell implements Serializable
     {
         row = i;
         col = j;
-        playerInControl = null;
+        playerNoInControl = -1;
         this.criticalMass = criticalMass;
         numberOfOrbs = 0;
         explodeDepth = 0;
@@ -31,14 +31,14 @@ public class Cell implements Serializable
         return col;
     }
 
-    public Player getPlayerInControl()
+    public int getPlayerNoInControl()
     {
-        return playerInControl;
+        return playerNoInControl;
     }
 
-    public void setPlayerInControl(Player player)
+    public void setPlayerNoInControl(int playerNo)
     {
-        playerInControl = player;
+        playerNoInControl = playerNo;
     }
 
     public int getNumberOfOrbs()
@@ -61,8 +61,8 @@ public class Cell implements Serializable
         if(++numberOfOrbs >= criticalMass)
         {
             numberOfOrbs = 0;
-            this.getPlayerInControl().decrementNumberOfCellsOccupied();
-            playerInControl = null;
+            //this.getPlayerNoInControl().decrementNumberOfCellsOccupied();
+            playerNoInControl = -1;
             return true;
         }
 

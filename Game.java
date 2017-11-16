@@ -18,6 +18,7 @@ public class Game implements Serializable
     private int maxVersionCount;
     public static Board[] boardVersions;
     public static int[] currentPlayerVersions;
+    //public static Player[][] allPlayerDataVersions;
 
     public Game(int m, int n, int numberOfPlayers, String[] playerColours)
     {
@@ -29,20 +30,25 @@ public class Game implements Serializable
         this.playerColours = playerColours;
         players = new Player[numberOfPlayers];
         for(int i = 0; i < numberOfPlayers; i++)
-            players[i] = new Player(playerColours[i], this);
+            players[i] = new Player(playerColours[i], this, i);
 
         // To be removed
         board = new Board(boardDimensionM, boardDimensionN, players);
 
         currentVersion = 0;
-        maxVersionCount = 1000;
+        maxVersionCount = 100;
         boardVersions = new Board[maxVersionCount];
         currentPlayerVersions = new int[maxVersionCount];
+        //allPlayerDataVersions = new Player[maxVersionCount][numberOfPlayers];
 
         for (int i = 0; i < maxVersionCount; i++)
         {
             boardVersions[i] = new Board(m, n, players);
             currentPlayerVersions[i] = 0;
+            // for (int j = 0; j < numberOfPlayers; j++)
+            // {
+            //     allPlayerDataVersions[i][j] = new Player(playerColours[j], this, j);
+            // }
         }
     }
 
@@ -51,6 +57,15 @@ public class Game implements Serializable
         return board;
     }
 
+    public Player getPlayer(int i)
+    {
+        return players[i];
+    }
+
+    public int getNumberOfPlayers()
+    {
+        return numberOfPlayers;
+    }
     public void play()
     {
         boolean done = false;
@@ -80,7 +95,30 @@ public class Game implements Serializable
                     System.out.println("Player " + (currentPlayer + 1));
 
                     players[currentPlayer].takeTurn();
-
+                    
+                    int numCellsEmpty = boardDimensionM*boardDimensionN;
+                    for (int i = 0; i < numberOfPlayers; i++)
+                    {
+                        players[i].setNumberOfCellsOccupied(0);    
+                    }
+                    for (int i = 0; i < boardDimensionM; i++)
+                    {
+                        for (int j = 0; j < boardDimensionN; j++)
+                        {
+                            int temp = board.getCell(i, j).getPlayerNoInControl();
+                            if(temp != -1)
+                            {
+                                players[temp].addNumberOfCellsOccupied(1);
+                                numCellsEmpty -= 1;
+                            }
+                        }
+                    }
+                    for (int i = 0; i < numberOfPlayers; i++)
+                    {
+                        if(players[i].getNumberOfCellsOccupied() == 0 && players[i].gotFairChance() == true)
+                            players[i].kill();
+                    }
+                    
                     // To be removed.
                     board.display();
                 }
@@ -121,7 +159,7 @@ public class Game implements Serializable
             boardVersions[currentVersion] = (Board)inBoard.readObject();
             currentPlayerVersions[currentVersion] = (int)inCurrentPlayer.readObject();
             
-            System.out.println(currentVersion);
+            //System.out.println(currentVersion);
 
             inBoard.close();
             inCurrentPlayer.close();
@@ -138,37 +176,67 @@ public class Game implements Serializable
             System.out.println("ClassNotFoundException" +" is caught");
         }
     }
-
-    // not needed imo
-    // private void deserialize()
+    // public void NsaveState()
     // {
-    //     Board[] boardArray = new Board[maxVersionCount];
-    //     int[] currentPlayerArray = new int[maxVersionCount];
     //     try
     //     {
-    //         String filename = "gameData.ser";
-    //         FileInputStream file = new FileInputStream (filename);
-    //         ObjectInputStream in = new ObjectInputStream (file);
+    //         String filenameBoard = "gameboardTemp.ser";
+    //         String filenameCurrentPlayer = "gamecurrentplayerTemp.ser";
+    //         String filenameAllPlayerData = "gameallplayerdataTemp.ser";
 
-    //         boardArray = (Board[])in.readObject();
-    //         currentPlayerArray = (int[])in.readObject();
+    //         FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
+    //         FileOutputStream fileCurrentPlayer = new FileOutputStream (filenameCurrentPlayer);
+    //         FileOutputStream fileAllPlayerData = new FileOutputStream (filenameAllPlayerData);
+
+    //         ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
+    //         ObjectOutputStream outCurrentPlayer = new ObjectOutputStream (fileCurrentPlayer);
+    //         ObjectOutputStream outAllPlayerData = new ObjectOutputStream (fileAllPlayerData);
+
+    //         outBoard.writeObject(board);
+    //         outCurrentPlayer.writeObject(currentPlayer);
+    //         outAllPlayerData.writeObject(players);
+            
+    //         outBoard.close();
+    //         outCurrentPlayer.close();
+    //         outAllPlayerData.close();
+
+    //         fileBoard.close();
+    //         fileCurrentPlayer.close();
+    //         fileAllPlayerData.close();
+            
+    //         FileInputStream fileBoard2 = new FileInputStream (filenameBoard);
+    //         FileInputStream fileCurrentPlayer2 = new FileInputStream (filenameCurrentPlayer);
+    //         FileInputStream fileAllPlayerData2 = new FileInputStream (filenameAllPlayerData);
+
+    //         ObjectInputStream inBoard = new ObjectInputStream (fileBoard2);
+    //         ObjectInputStream inCurrentPlayer = new ObjectInputStream (fileCurrentPlayer2);
+    //         ObjectInputStream inAllPlayerData = new ObjectInputStream (fileAllPlayerData2);
+
+    //         currentVersion = (currentVersion + 1) % maxVersionCount;
+
+    //         boardVersions[currentVersion] = (Board)inBoard.readObject();
+    //         currentPlayerVersions[currentVersion] = (int)inCurrentPlayer.readObject();
+    //         allPlayerDataVersions[currentVersion] = (Player[])inAllPlayerData.readObject();
+            
+    //         System.out.println(currentVersion);
+
+    //         inBoard.close();
+    //         inCurrentPlayer.close();
+    //         inAllPlayerData.close();
+
+    //         fileBoard2.close();
+    //         fileCurrentPlayer2.close();
+    //         fileAllPlayerData2.close();
     //     }
-    //     catch (IOException ex)
+    //     catch (IOException e)
     //     {
-    //         //do something
-    //         //System.out.println("IOException is caught");
+    //         System.out.println(e);
     //     }
     //     catch (ClassNotFoundException ex)
     //     {
-    //         //do something
-    //         //System.out.println("ClassNotFoundException" +" is caught");
+    //         System.out.println("ClassNotFoundException" +" is caught");
     //     }
     // }
-
-    public void pause()
-    {
-        // Code to be written.
-    }
 
     public void undo()
     {
@@ -204,9 +272,12 @@ public class Game implements Serializable
             ObjectInputStream inCurrentPlayer = new ObjectInputStream (fileCurrentPlayer2);
 
             board = (Board)inBoard.readObject();
-            currentPlayer = (int)inCurrentPlayer.readObject();
+            currentPlayer = (int)inCurrentPlayer.readObject() - 2;
 
-            System.out.println(currentVersion);
+            if(currentPlayer == -2)
+            {
+                currentPlayer += numberOfPlayers;
+            }
 
             inBoard.close();
             inCurrentPlayer.close();
@@ -216,18 +287,83 @@ public class Game implements Serializable
         }
         catch (IOException e)
         {
-            //do something
+            System.out.println(e);
         }
         catch (ClassNotFoundException ex)
         {
             System.out.println("ClassNotFoundException" +" is caught");
         }
     }
+    // public void Nundo()
+    // {
+    //     try
+    //     {
+    //         String filenameBoard = "gameboardTemp.ser";
+    //         String filenameCurrentPlayer = "gamecurrentplayerTemp.ser";
+    //         String filenameAllPlayerData = "gameallplayerdataTemp.ser";
+            
+    //         FileOutputStream fileBoard = new FileOutputStream(filenameBoard);
+    //         FileOutputStream fileCurrentPlayer = new FileOutputStream(filenameCurrentPlayer);
+    //         FileOutputStream fileAllPlayerData = new FileOutputStream(filenameAllPlayerData);
+
+    //         ObjectOutputStream outBoard = new ObjectOutputStream(fileBoard);
+    //         ObjectOutputStream outCurrentPlayer = new ObjectOutputStream(fileCurrentPlayer);
+    //         ObjectOutputStream outAllPlayerData = new ObjectOutputStream(fileAllPlayerData);
+            
+    //         if(currentVersion != 0)
+    //         {
+    //             currentVersion -= 1;
+    //         }
+
+    //         outBoard.writeObject(boardVersions[currentVersion]);
+    //         outCurrentPlayer.writeObject(currentPlayerVersions[currentVersion]);
+    //         outAllPlayerData.writeObject(allPlayerDataVersions[currentVersion]);
+            
+    //         outBoard.close();
+    //         outCurrentPlayer.close();
+    //         outAllPlayerData.close();
+            
+    //         fileBoard.close();
+    //         fileCurrentPlayer.close();
+    //         fileAllPlayerData.close();
+            
+    //         FileInputStream fileBoard2 = new FileInputStream(filenameBoard);
+    //         FileInputStream fileCurrentPlayer2 = new FileInputStream(filenameCurrentPlayer);
+    //         FileInputStream fileAllPlayerData2 = new FileInputStream(filenameAllPlayerData); 
+
+    //         ObjectInputStream inBoard = new ObjectInputStream(fileBoard2);
+    //         ObjectInputStream inCurrentPlayer = new ObjectInputStream(fileCurrentPlayer2);
+    //         ObjectInputStream inAllPlayerData = new ObjectInputStream(fileAllPlayerData2);
+
+    //         board = (Board)inBoard.readObject();
+    //         currentPlayer = (int)inCurrentPlayer.readObject();
+    //         players = (Player[])inAllPlayerData.readObject();
+
+    //         //System.out.println(currentPlayer);
+    //         //currentPlayer -= 1;
+
+    //         inBoard.close();
+    //         inCurrentPlayer.close();
+    //         inAllPlayerData.close();
+
+    //         fileBoard2.close();
+    //         fileCurrentPlayer2.close();
+    //         fileAllPlayerData2.close();
+    //     }
+    //     catch (IOException e)
+    //     {
+    //         System.out.println("IOException is caught");
+    //     }
+    //     catch (ClassNotFoundException ex)
+    //     {
+    //         System.out.println("ClassNotFoundException is caught");
+    //     }
+    // }
 
     public void restart()
     {
         board = new Board(boardDimensionM, boardDimensionN, players);
-        currentPlayer = 0;
+        currentPlayer = -1;
         currentVersion = 0;
     }
 
