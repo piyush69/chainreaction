@@ -1,12 +1,10 @@
 package chainreaction;
 
-import java.io.*;
-
-public class Cell implements Serializable
+public class Cell
 {
     private int row;
     private int col;
-    private int playerNoInControl;
+    private Player playerInControl;
     private int criticalMass;
     private int numberOfOrbs;
     private int explodeDepth;
@@ -15,7 +13,7 @@ public class Cell implements Serializable
     {
         row = i;
         col = j;
-        playerNoInControl = -1;
+        playerInControl = null;
         this.criticalMass = criticalMass;
         numberOfOrbs = 0;
         explodeDepth = 0;
@@ -31,14 +29,14 @@ public class Cell implements Serializable
         return col;
     }
 
-    public int getPlayerNoInControl()
+    public Player getPlayerInControl()
     {
-        return playerNoInControl;
+        return playerInControl;
     }
 
-    public void setPlayerNoInControl(int playerNo)
+    public void setPlayerInControl(Player player)
     {
-        playerNoInControl = playerNo;
+        playerInControl = player;
     }
 
     public int getNumberOfOrbs()
@@ -61,8 +59,7 @@ public class Cell implements Serializable
         if(++numberOfOrbs >= criticalMass)
         {
             numberOfOrbs = 0;
-            //this.getPlayerNoInControl().decrementNumberOfCellsOccupied();
-            playerNoInControl = -1;
+            playerInControl = null;
             return true;
         }
 
