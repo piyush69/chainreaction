@@ -1,4 +1,4 @@
 # chain-reaction
 
-To be discussed :  
-Check changes in pull request carefully before merging
+Merged files, as creating a pull request was leading to a conflict. 
+Do go through the code if you want
