@@ -1,8 +1,9 @@
 package chainreaction;
 
 import java.util.*;
+import java.io.*;
 
-public class Board
+public class Board implements Serializable
 {
     private int m;
     private int n;
@@ -12,7 +13,7 @@ public class Board
     // To be removed.
     private Player[] players;
 
-    public Board(int m, int n, Player[] players /*To be removed*/)
+    public Board(int m, int n, Player[] players)
     {
         this.m = m;
         this.n = n;
@@ -39,20 +40,24 @@ public class Board
         this.players = players;
     }
 
-    public void explode(int i, int j, Player player, int explodeDepth)
+    public Cell getCell(int i, int j)
     {
-        player.decrementNumberOfCellsOccupied();
+        return board[i][j];
+    }
+    public void explode(int i, int j, int playerNo, int explodeDepth)
+    {
+        players[playerNo].decrementNumberOfCellsOccupied();
         if(i > 0)
-            explosiveAddOrb(i - 1, j, player, explodeDepth);
+            explosiveAddOrb(i - 1, j, playerNo, explodeDepth);
         if(i < m - 1)
-            explosiveAddOrb(i + 1, j, player, explodeDepth);
+            explosiveAddOrb(i + 1, j, playerNo, explodeDepth);
         if(j > 0)
-            explosiveAddOrb(i, j - 1, player, explodeDepth);
+            explosiveAddOrb(i, j - 1, playerNo, explodeDepth);
         if(j < n - 1)
-            explosiveAddOrb(i, j + 1, player, explodeDepth);
+            explosiveAddOrb(i, j + 1, playerNo, explodeDepth);
     }
 
-    public boolean addOrb(int i, int j, Player player)
+    public boolean addOrb(int i, int j, int playerNo)
     {
         if(i < 0 || i >= m || j < 0 || j >= n)
         {
@@ -62,16 +67,16 @@ public class Board
 
         Cell cell = board[i][j];
 
-        if(cell.getPlayerInControl() != null & cell.getPlayerInControl() != player)
+        if(cell.getPlayerNoInControl() != -1 && cell.getPlayerNoInControl() != playerNo)
         {
             // Throw exception.
             return false;
         }
 
-        if(cell.getPlayerInControl() == null)
+        if(cell.getPlayerNoInControl() == -1)
         {
-            cell.setPlayerInControl(player);
-            player.incrementNumberOfCellsOccupied();
+            cell.setPlayerNoInControl(playerNo);
+            players[playerNo].incrementNumberOfCellsOccupied();
         }
 
         // Need to incorporate parallel.
@@ -85,26 +90,26 @@ public class Board
         while(!explosionQueue.isEmpty())
         {
             Cell explodeCell = explosionQueue.remove();
-            explode(explodeCell.getRow(), explodeCell.getCol(), player, explodeCell.getExplodeDepth() + 1);
+            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1);
         }
 
         return true;
     }
 
-    public void explosiveAddOrb(int i, int j, Player player, int explodeDepth)
+    public void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth)
     {
         Cell cell = board[i][j];
 
-        if(cell.getPlayerInControl() != player)
+        if(cell.getPlayerNoInControl() != playerNo)
         {
-            if(cell.getPlayerInControl() != null)
+            if(cell.getPlayerNoInControl() != -1)
             {
-                cell.getPlayerInControl().decrementNumberOfCellsOccupied();
-                if(cell.getPlayerInControl().getNumberOfCellsOccupied() == 0)
-                    cell.getPlayerInControl().kill();
+                players[cell.getPlayerNoInControl()].decrementNumberOfCellsOccupied();
+                //if(players[cell.getPlayerNoInControl()].getNumberOfCellsOccupied() == 0)
+                //    players[cell.getPlayerNoInControl()].kill();
             }
-            cell.setPlayerInControl(player);
-            player.incrementNumberOfCellsOccupied();
+            cell.setPlayerNoInControl(playerNo);
+            players[playerNo].incrementNumberOfCellsOccupied();
         }
 
         if(cell.incrementOrbAndCheckExplosion())
@@ -117,15 +122,28 @@ public class Board
     // To be removed
     public void display()
     {
+        //System.out.println(players[0]);
+        //System.out.println(players[1]);
         for(int i = 0; i < m; i++)
         {
             for(int j = 0; j < n; j++)
             {
-                System.out.print(board[i][j].getNumberOfOrbs());
-                if(board[i][j].getPlayerInControl() == players[0])
+                if(board[i][j].getNumberOfOrbs() != 0)
+                {
+                    System.out.print(board[i][j].getNumberOfOrbs());    
+                }
+                else
+                {
+                    System.out.print(" ");
+                }
+                
+                //System.out.print(board[i][j].getPlayerNoInControl());
+                if(board[i][j].getPlayerNoInControl() == 0)
                     System.out.print("a ");
-                else if(board[i][j].getPlayerInControl() == players[1])
+                else if(board[i][j].getPlayerNoInControl() == 1)
                     System.out.print("b ");
+                else if(board[i][j].getPlayerNoInControl() == 2)
+                    System.out.print("c ");
                 else
                     System.out.print("_ ");
             }
