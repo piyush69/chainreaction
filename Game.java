@@ -60,13 +60,13 @@ public class Game implements Serializable
     {
         return numberOfPlayers;
     }
-    public void play()
+    public void play(int startingPlayer)
     {
         boolean done = false;
 
         while(!done)
         {
-            for(currentPlayer = 0; currentPlayer < numberOfPlayers; currentPlayer++)
+            for(currentPlayer = startingPlayer; currentPlayer < numberOfPlayers; currentPlayer++)
             {
                 if(players[currentPlayer].isAlive())
                 {
@@ -154,8 +154,6 @@ public class Game implements Serializable
 
             boardVersions[currentVersion] = (Board)inBoard.readObject();
             currentPlayerVersions[currentVersion] = (int)inCurrentPlayer.readObject();
-            
-            //System.out.println(currentVersion);
 
             inBoard.close();
             inCurrentPlayer.close();
@@ -234,6 +232,35 @@ public class Game implements Serializable
 
     public void exit()
     {
-        // Code to be written.
+        try
+        {
+            String filenameBoard = "gameboardData.ser";
+            String filenameCurrentPlayer = "gamecurrentplayerData.ser";
+            String filenamePlayerList = "gamePlayerListData.ser";
+
+            FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
+            FileOutputStream fileCurrentPlayer = new FileOutputStream (filenameCurrentPlayer);
+            FileOutputStream filePlayerList = new FileOutputStream (filenamePlayerList);
+
+            ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
+            ObjectOutputStream outCurrentPlayer = new ObjectOutputStream (fileCurrentPlayer);
+            ObjectOutputStream outPlayerList = new ObjectOutputStream (filePlayerList);
+
+            outBoard.writeObject(board);
+            outCurrentPlayer.writeObject(currentPlayer);
+            outPlayerList.writeObject(players);
+            
+            outBoard.close();
+            outCurrentPlayer.close();
+            outPlayerList.close();
+
+            fileBoard.close();
+            fileCurrentPlayer.close();
+            filePlayerList.close();
+        }
+        catch (IOException e)
+        {
+            System.out.println(e);
+        }
     }
 }
