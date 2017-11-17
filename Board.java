@@ -1,22 +1,26 @@
 package chainreaction;
 
+import javafx.scene.Scene;
 import java.util.*;
-import java.io.*;
 
-public class Board implements Serializable
+public class Board
 {
     private int m;
     private int n;
     private Cell[][] board;
     private Queue<Cell> explosionQueue;
+    private Scene scene;
+    private double cellSize;
 
     // To be removed.
     private Player[] players;
 
-    public Board(int m, int n, Player[] players)
+    public Board(int m, int n, Player[] players /*To be removed*/, Scene scene, double cellSize)
     {
         this.m = m;
         this.n = n;
+        this.scene = scene;
+        this.cellSize = cellSize;
 
         board = new Cell[m][n];
         for(int i = 0; i < m; i++)
@@ -40,24 +44,20 @@ public class Board implements Serializable
         this.players = players;
     }
 
-    public Cell getCell(int i, int j)
+    public void explode(int i, int j, Player player, int explodeDepth)
     {
-        return board[i][j];
-    }
-    public void explode(int i, int j, int playerNo, int explodeDepth)
-    {
-        players[playerNo].decrementNumberOfCellsOccupied();
+        player.decrementNumberOfCellsOccupied();
         if(i > 0)
-            explosiveAddOrb(i - 1, j, playerNo, explodeDepth);
+            explosiveAddOrb(i - 1, j, player, explodeDepth);
         if(i < m - 1)
-            explosiveAddOrb(i + 1, j, playerNo, explodeDepth);
+            explosiveAddOrb(i + 1, j, player, explodeDepth);
         if(j > 0)
-            explosiveAddOrb(i, j - 1, playerNo, explodeDepth);
+            explosiveAddOrb(i, j - 1, player, explodeDepth);
         if(j < n - 1)
-            explosiveAddOrb(i, j + 1, playerNo, explodeDepth);
+            explosiveAddOrb(i, j + 1, player, explodeDepth);
     }
 
-    public boolean addOrb(int i, int j, int playerNo)
+    public boolean addOrb(int i, int j, Player player)
     {
         if(i < 0 || i >= m || j < 0 || j >= n)
         {
@@ -67,16 +67,16 @@ public class Board implements Serializable
 
         Cell cell = board[i][j];
 
-        if(cell.getPlayerNoInControl() != -1 && cell.getPlayerNoInControl() != playerNo)
+        if(cell.getPlayerInControl() != null & cell.getPlayerInControl() != player)
         {
             // Throw exception.
             return false;
         }
 
-        if(cell.getPlayerNoInControl() == -1)
+        if(cell.getPlayerInControl() == null)
         {
-            cell.setPlayerNoInControl(playerNo);
-            players[playerNo].incrementNumberOfCellsOccupied();
+            cell.setPlayerInControl(player);
+            player.incrementNumberOfCellsOccupied();
         }
 
         // Need to incorporate parallel.
@@ -90,26 +90,26 @@ public class Board implements Serializable
         while(!explosionQueue.isEmpty())
         {
             Cell explodeCell = explosionQueue.remove();
-            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1);
+            explode(explodeCell.getRow(), explodeCell.getCol(), player, explodeCell.getExplodeDepth() + 1);
         }
 
         return true;
     }
 
-    public void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth)
+    public void explosiveAddOrb(int i, int j, Player player, int explodeDepth)
     {
         Cell cell = board[i][j];
 
-        if(cell.getPlayerNoInControl() != playerNo)
+        if(cell.getPlayerInControl() != player)
         {
-            if(cell.getPlayerNoInControl() != -1)
+            if(cell.getPlayerInControl() != null)
             {
-                players[cell.getPlayerNoInControl()].decrementNumberOfCellsOccupied();
-                //if(players[cell.getPlayerNoInControl()].getNumberOfCellsOccupied() == 0)
-                //    players[cell.getPlayerNoInControl()].kill();
+                cell.getPlayerInControl().decrementNumberOfCellsOccupied();
+                if(cell.getPlayerInControl().getNumberOfCellsOccupied() == 0)
+                    cell.getPlayerInControl().kill();
             }
-            cell.setPlayerNoInControl(playerNo);
-            players[playerNo].incrementNumberOfCellsOccupied();
+            cell.setPlayerInControl(player);
+            player.incrementNumberOfCellsOccupied();
         }
 
         if(cell.incrementOrbAndCheckExplosion())
@@ -122,27 +122,16 @@ public class Board implements Serializable
     // To be removed
     public void display()
     {
-        //System.out.println(players[0]);
-        //System.out.println(players[1]);
         for(int i = 0; i < m; i++)
         {
             for(int j = 0; j < n; j++)
             {
-                if(board[i][j].getNumberOfOrbs() != 0)
-                {
-                    System.out.print(board[i][j].getNumberOfOrbs());    
-                }
-                else
-                {
-                    System.out.print(" ");
-                }
-                
-                //System.out.print(board[i][j].getPlayerNoInControl());
-                if(board[i][j].getPlayerNoInControl() == 0)
+                System.out.print(board[i][j].getNumberOfOrbs());
+                if(board[i][j].getPlayerInControl() == players[0])
                     System.out.print("a ");
-                else if(board[i][j].getPlayerNoInControl() == 1)
+                else if(board[i][j].getPlayerInControl() == players[1])
                     System.out.print("b ");
-                else if(board[i][j].getPlayerNoInControl() == 2)
+                else if(board[i][j].getPlayerInControl() == players[2])
                     System.out.print("c ");
                 else
                     System.out.print("_ ");

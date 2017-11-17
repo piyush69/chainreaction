@@ -1,40 +1,22 @@
 package chainreaction;
 
-import java.util.*;
-import java.io.*;
+import javafx.scene.Scene;
 
-public class Player implements Serializable
+import java.util.*;
+
+public class Player
 {
     private String colour;
     private int numberOfCellsOccupied;
-    private int playerNumber;
     private boolean alive;
     private Game currentGame;
-    private boolean fairChance;
 
-    public Player(String colour, Game game, int p)
+    public Player(String colour, Game game)
     {
         this.colour = colour;
         numberOfCellsOccupied = 0;
-        playerNumber = p;
         alive = true;
         currentGame = game;
-        fairChance = false;
-    }
-
-    public int getPlayerNumber()
-    {
-        return playerNumber;
-    }
-
-    public boolean gotFairChance()
-    {
-        return fairChance;
-    }
-
-    public void setFairChance(boolean chance)
-    {
-        fairChance = chance;
     }
 
     public String getColour()
@@ -57,11 +39,6 @@ public class Player implements Serializable
         alive = false;
     }
 
-    public void revive()
-    {
-        alive = true;
-    }
-
     public void incrementNumberOfCellsOccupied()
     {
         numberOfCellsOccupied++;
@@ -77,54 +54,27 @@ public class Player implements Serializable
         return numberOfCellsOccupied;
     }
 
-    public void setNumberOfCellsOccupied(int num)
+    public boolean takeTurn(int i, int j)
     {
-        numberOfCellsOccupied = num;
-    }
+        if(currentGame.getBoard().addOrb(i, j, this))
+            return true;
 
-    public void addNumberOfCellsOccupied(int num)
-    {
-        numberOfCellsOccupied += num;
-    }
+        return false;
 
-    public void takeTurn()
-    {
+        /*
         // To be removed.
         Scanner input = new Scanner(System.in);
         boolean done = false;
-        this.fairChance = true;
         while(!done)
         {
             System.out.println("Enter i and j");
             int i = input.nextInt();
             int j = input.nextInt();
-            
-            //System.out.println("Sending "+Integer.toString(this.getPlayerNumber())+" to addORb");
-
-            if(i == -1 && j == -1)
-            {
-                int x = this.getPlayerNumber() - 1;
-                if(x < 0)
-                {
-                    x = this.currentGame.getNumberOfPlayers() - 1;
-                }
-                this.currentGame.getPlayer(x).setFairChance(false);
-                this.setFairChance(false);
-                currentGame.undo();
-                done = true;
-            }
-            else if(i == -2 && j == -2) //to be placed somewhere else
-            {
-                currentGame.restart();
-                done = true;
-            }
-            else if(!currentGame.getBoard().addOrb(i, j, this.getPlayerNumber()))
+            if(!currentGame.getBoard().addOrb(i, j, this))
                 System.out.println("Try again");
             else
-            {
-                currentGame.saveState();
                 done = true;
-            }
         }
+        */
     }
 }
