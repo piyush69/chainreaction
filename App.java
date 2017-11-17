@@ -1,50 +1,52 @@
 package chainreaction;
 
-import java.util.*;
+
+
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
 import javafx.application.Application;
-
-import javafx.animation.*;
-
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-
 import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-
-import javafx.scene.Scene;
-import javafx.scene.Parent;
+import javafx.geometry.Pos;
 import javafx.scene.Group;
-import javafx.scene.effect.Reflection;
-import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.shape.*;
-import javafx.scene.text.*;
-import javafx.scene.input.*;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-
+import javafx.scene.shape.Rectangle;
+import javafx.scene.shape.Sphere;
+import javafx.scene.text.Font;
+import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
+
 
 public class App extends Application
 {
-    private int m = 9;
-    private int n = 6;
+    private int m = 15;
+    private int n = 10;
     private final double cellSize = 900.0 / m;
-    private int numberOfPlayers = 2;
+    private int numberOfPlayers = 3;
     private Game currentGame;
     private boolean gameInProgress = true;
     private int winner = 0;
     private Scene scene;
+    private Pane root;
     private CellTile[][] cellMatrix = new CellTile[m][n];
+    private Group[][] groupMatrix = new Group[m][n];
 
     // To be removed
-    String[] colours = {"Red", "Green", "Blue", "Yellow", "Orange", "Purple", "Pink", "Indigo"};
+    String[] colours = {"#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#FF88888", "#88FF88"};
 
     private Parent createContent()
     {
-        Pane root = new Pane();
+        root = new Pane();
         root.setPrefSize(600.0, 970.0);
 
         HBox hboxFileMenu = new HBox();
@@ -61,7 +63,15 @@ public class App extends Application
 
         Menu editMenu = new Menu("Edit");
         MenuItem menuUndo = new MenuItem("Undo");
-        //menuUndo.setOnAction((ActionEvent event) -> { gameBegin(primaryStage); });
+        menuUndo.setOnAction((ActionEvent event) -> { currentGame.getCurrentPlayer().undoTurn(groupMatrix, root);
+            for(int i = 0; i < numberOfPlayers; i++)
+            {
+                System.out.println("Player " + (i + 1));
+                System.out.println("Cells occupied: " + currentGame.getPlayer(i).getNumberOfCellsOccupied());
+                System.out.println("Fair chance: " + currentGame.getPlayer(i).gotFairChance());
+            }
+            System.out.println();
+        });
         editMenu.getItems().add(menuUndo);
 
         mbar.getMenus().addAll(fileMenu, editMenu);
@@ -73,9 +83,50 @@ public class App extends Application
             for(int j = 0; j < n; j++)
             {
                 cellMatrix[i][j] = new CellTile(i, j);
-                cellMatrix[i][j].setTranslateX(5 + j * cellSize);
+                cellMatrix[i][j].setTranslateX(j * cellSize);
                 cellMatrix[i][j].setTranslateY(60 + i * cellSize);
                 root.getChildren().add(cellMatrix[i][j]);
+
+                Cluster c = new Cluster("#000000", 0);
+                Group g = c.createCluster(cellSize);
+
+                groupMatrix[i][j] = g;
+                groupMatrix[i][j].setTranslateX(j * cellSize);
+                groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+                groupMatrix[i][j].setMouseTransparent(true);
+                RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+                rotate.setByAngle(360);
+                rotate.setCycleCount(Timeline.INDEFINITE);
+                rotate.setInterpolator(Interpolator.LINEAR);
+                rotate.play();
+                root.getChildren().add(groupMatrix[i][j]);
+
+                /*
+                if(i == 5 && j == 5)
+                {
+                    groupMatrix[i][j].getChildren().clear();
+
+                    Cluster c1 = new Cluster("#FF0000", 3);
+                    Group g1 = c1.createCluster(cellSize);
+
+                    groupMatrix[i][j] = g1;
+                    groupMatrix[i][j].setTranslateX(j * cellSize);
+                    groupMatrix[i][j].setTranslateY(i * cellSize);
+                    rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+                    rotate.setByAngle(360);
+                    rotate.setCycleCount(Timeline.INDEFINITE);
+                    rotate.setInterpolator(Interpolator.LINEAR);
+                    rotate.play();
+                    root.getChildren().add(groupMatrix[i][j]);
+                }
+                */
+
+                /*
+                Cluster c1 = new Cluster("#FF0000", 3);
+                Group g1 = c.createCluster(cellSize);
+                groupMatrix[i][j] = g1;
+                root.getChildren().add(groupMatrix[i][j]);
+                */
             }
 
         return root;
@@ -84,50 +135,10 @@ public class App extends Application
     public void start(Stage primaryStage) throws Exception
     {
         primaryStage.setTitle("Chain Reaction");
-        currentGame = new Game(m, n, numberOfPlayers, colours);
         scene = new Scene(createContent());
+        currentGame = new Game(m, n, numberOfPlayers, colours, cellSize);
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
-        primaryStage.show();
-        //homePage(primaryStage);
-    }
 
-    public void homePage(Stage primaryStage)
-    {
-        BorderPane root = new BorderPane();
-        root.setPrefSize(600.0, 970.0);
-
-        Text name = new Text("Chain Reaction");
-        name.setFill(Color.STEELBLUE);
-        name.setFont(Font.font("SanSerif", FontWeight.BOLD, 60));
-        Reflection ref = new Reflection();
-        name.setEffect(ref);
-
-        VBox vboxName = new VBox();
-        vboxName.setAlignment(Pos.CENTER);
-        vboxName.getChildren().add(name);
-        vboxName.setPrefHeight(330);
-
-        VBox vboxButtons = new VBox(50);
-        vboxButtons.setAlignment(Pos.CENTER);
-        Button startbtn = new Button ("Start");
-        //startbtn.setOnAction(e -> gameBegin(primaryStage) );
-        Button resumebtn = new Button ("Resume");
-        //resumebtn.setOnAction(e -> gameBegin(primaryStage) ); 
-        vboxButtons.getChildren().addAll(startbtn, resumebtn);
-
-
-        //Button settingsbtn = new Button ("Settings");
-        // settingsbtn.setOnAction(e -> settings(primaryStage) );
-
-        root.setTop(vboxName);
-        // root.setBottom();
-        // root.setLeft();
-        // root.setRight();
-        root.setCenter(vboxButtons);
-        
-        Scene scene = new Scene(root, 600.0, 970.0);
-        primaryStage.setScene(scene);
         primaryStage.show();
     }
 
@@ -156,7 +167,7 @@ public class App extends Application
             {
                 if(event.getButton() == MouseButton.PRIMARY && gameInProgress)
                 {
-                    int result = currentGame.move(i, j);
+                    int result = currentGame.move(i, j, groupMatrix, root);
 
                     /*
                     if(result == 0)
@@ -173,9 +184,19 @@ public class App extends Application
                         gameInProgress = false;
                     }
                 }
+
+                for(int k = 0; k < numberOfPlayers; k++)
+                {
+                    System.out.println("Player " + (k + 1));
+                    System.out.println("Cells occupied: " + currentGame.getPlayer(k).getNumberOfCellsOccupied());
+                    System.out.println("Fair chance: " + currentGame.getPlayer(k).gotFairChance());
+                }
+                System.out.println();
             });
         }
     }
+
+
 
     public static void main(String[] args)
     {

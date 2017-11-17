@@ -1,7 +1,15 @@
 package chainreaction;
 
+import javafx.animation.Interpolator;
+import javafx.animation.RotateTransition;
+import javafx.animation.Timeline;
+import javafx.scene.Group;
+import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
+import javafx.util.Duration;
+
+import java.io.Serializable;
 import java.util.*;
-import java.io.*;
 
 public class Board implements Serializable
 {
@@ -9,14 +17,15 @@ public class Board implements Serializable
     private int n;
     private Cell[][] board;
     private Queue<Cell> explosionQueue;
-
-    // To be removed.
+    private double cellSize;
     private Player[] players;
 
-    public Board(int m, int n, Player[] players)
+    public Board(int m, int n, Player[] players, double cellSize)
     {
         this.m = m;
         this.n = n;
+        this.players = players;
+        this.cellSize = cellSize;
 
         board = new Cell[m][n];
         for(int i = 0; i < m; i++)
@@ -35,29 +44,27 @@ public class Board implements Serializable
         }
 
         explosionQueue = new LinkedList<Cell>();
-
-        // To be removed.
-        this.players = players;
     }
 
     public Cell getCell(int i, int j)
     {
         return board[i][j];
     }
-    public void explode(int i, int j, int playerNo, int explodeDepth)
+
+    public void explode(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
     {
         players[playerNo].decrementNumberOfCellsOccupied();
         if(i > 0)
-            explosiveAddOrb(i - 1, j, playerNo, explodeDepth);
+            explosiveAddOrb(i - 1, j, playerNo, explodeDepth, groupMatrix, root);
         if(i < m - 1)
-            explosiveAddOrb(i + 1, j, playerNo, explodeDepth);
+            explosiveAddOrb(i + 1, j, playerNo, explodeDepth, groupMatrix, root);
         if(j > 0)
-            explosiveAddOrb(i, j - 1, playerNo, explodeDepth);
+            explosiveAddOrb(i, j - 1, playerNo, explodeDepth, groupMatrix, root);
         if(j < n - 1)
-            explosiveAddOrb(i, j + 1, playerNo, explodeDepth);
+            explosiveAddOrb(i, j + 1, playerNo, explodeDepth, groupMatrix, root);
     }
 
-    public boolean addOrb(int i, int j, int playerNo)
+    public boolean addOrb(int i, int j, int playerNo, Group[][] groupMatrix, Pane root)
     {
         if(i < 0 || i >= m || j < 0 || j >= n)
         {
@@ -67,7 +74,7 @@ public class Board implements Serializable
 
         Cell cell = board[i][j];
 
-        if(cell.getPlayerNoInControl() != -1 && cell.getPlayerNoInControl() != playerNo)
+        if(cell.getPlayerNoInControl() != -1 & cell.getPlayerNoInControl() != playerNo)
         {
             // Throw exception.
             return false;
@@ -83,20 +90,55 @@ public class Board implements Serializable
 
         if(cell.incrementOrbAndCheckExplosion())
         {
+            // GUI
+            groupMatrix[i][j].getChildren().clear();
+
+            Cluster c = new Cluster("#000000", 0);
+            Group g = c.createCluster(cellSize);
+
+            groupMatrix[i][j] = g;
+            groupMatrix[i][j].setTranslateX(j * cellSize);
+            groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+            RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.setInterpolator(Interpolator.LINEAR);
+            rotate.play();
+            root.getChildren().add(groupMatrix[i][j]);
+
             cell.setExplodeDepth(1);
             explosionQueue.add(cell);
+        }
+
+        else
+        {
+            groupMatrix[i][j].getChildren().clear();
+
+            Cluster c = new Cluster(players[playerNo].getColour(), cell.getNumberOfOrbs());
+            Group g = c.createCluster(cellSize);
+
+            groupMatrix[i][j] = g;
+            groupMatrix[i][j].setTranslateX(j * cellSize);
+            groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+            groupMatrix[i][j].setMouseTransparent(true);
+            RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.setInterpolator(Interpolator.LINEAR);
+            rotate.play();
+            root.getChildren().add(groupMatrix[i][j]);
         }
 
         while(!explosionQueue.isEmpty())
         {
             Cell explodeCell = explosionQueue.remove();
-            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1);
+            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
         }
 
         return true;
     }
 
-    public void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth)
+    public void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
     {
         Cell cell = board[i][j];
 
@@ -104,9 +146,10 @@ public class Board implements Serializable
         {
             if(cell.getPlayerNoInControl() != -1)
             {
+                //cell.getPlayerInControl().decrementNumberOfCellsOccupied();
                 players[cell.getPlayerNoInControl()].decrementNumberOfCellsOccupied();
-                //if(players[cell.getPlayerNoInControl()].getNumberOfCellsOccupied() == 0)
-                //    players[cell.getPlayerNoInControl()].kill();
+                //if(cell.getPlayerInControl().getNumberOfCellsOccupied() == 0)
+                    //cell.getPlayerInControl().kill();
             }
             cell.setPlayerNoInControl(playerNo);
             players[playerNo].incrementNumberOfCellsOccupied();
@@ -114,30 +157,103 @@ public class Board implements Serializable
 
         if(cell.incrementOrbAndCheckExplosion())
         {
+            groupMatrix[i][j].getChildren().clear();
+
+            Cluster c = new Cluster("#000000", 0);
+            Group g = c.createCluster(cellSize);
+
+            groupMatrix[i][j] = g;
+            groupMatrix[i][j].setTranslateX(j * cellSize);
+            groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+            RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.setInterpolator(Interpolator.LINEAR);
+            rotate.play();
+            root.getChildren().add(groupMatrix[i][j]);
+
             cell.setExplodeDepth(explodeDepth);
             explosionQueue.add(cell);
         }
+
+        else
+        {
+            groupMatrix[i][j].getChildren().clear();
+
+            Cluster c = new Cluster(players[playerNo].getColour(), cell.getNumberOfOrbs());
+            Group g = c.createCluster(cellSize);
+
+            groupMatrix[i][j] = g;
+            groupMatrix[i][j].setTranslateX(j * cellSize);
+            groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+            groupMatrix[i][j].setMouseTransparent(true);
+            RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+            rotate.setByAngle(360);
+            rotate.setCycleCount(Timeline.INDEFINITE);
+            rotate.setInterpolator(Interpolator.LINEAR);
+            rotate.play();
+            root.getChildren().add(groupMatrix[i][j]);
+        }
     }
 
-    // To be removed
-    public void display()
+
+    public void display(Group[][] groupMatrix, Pane root)
     {
-        //System.out.println(players[0]);
-        //System.out.println(players[1]);
         for(int i = 0; i < m; i++)
         {
             for(int j = 0; j < n; j++)
             {
-                if(board[i][j].getNumberOfOrbs() != 0)
+                int playerNo = board[i][j].getPlayerNoInControl();
+
+                if(playerNo == -1)
                 {
-                    System.out.print(board[i][j].getNumberOfOrbs());    
+                    groupMatrix[i][j].getChildren().clear();
+
+                    Cluster c = new Cluster("#000000", 0);
+                    Group g = c.createCluster(cellSize);
+
+                    groupMatrix[i][j] = g;
+                    groupMatrix[i][j].setTranslateX(j * cellSize);
+                    groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+                    RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+                    rotate.setByAngle(360);
+                    rotate.setCycleCount(Timeline.INDEFINITE);
+                    rotate.setInterpolator(Interpolator.LINEAR);
+                    rotate.play();
+                    root.getChildren().add(groupMatrix[i][j]);
                 }
+
                 else
                 {
-                    System.out.print(" ");
+                    groupMatrix[i][j].getChildren().clear();
+
+                    Cluster c = new Cluster(players[playerNo].getColour(), board[i][j].getNumberOfOrbs());
+                    Group g = c.createCluster(cellSize);
+
+                    groupMatrix[i][j] = g;
+                    groupMatrix[i][j].setTranslateX(j * cellSize);
+                    groupMatrix[i][j].setTranslateY(60 + i * cellSize);
+                    groupMatrix[i][j].setMouseTransparent(true);
+                    RotateTransition rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
+                    rotate.setByAngle(360);
+                    rotate.setCycleCount(Timeline.INDEFINITE);
+                    rotate.setInterpolator(Interpolator.LINEAR);
+                    rotate.play();
+                    root.getChildren().add(groupMatrix[i][j]);
                 }
-                
-                //System.out.print(board[i][j].getPlayerNoInControl());
+            }
+        }
+    }
+
+    // To be removed
+    /*
+    public void display()
+    {
+        for(int i = 0; i < m; i++)
+        {
+            for(int j = 0; j < n; j++)
+            {
+                System.out.print(board[i][j].getNumberOfOrbs());
                 if(board[i][j].getPlayerNoInControl() == 0)
                     System.out.print("a ");
                 else if(board[i][j].getPlayerNoInControl() == 1)
@@ -151,4 +267,5 @@ public class Board implements Serializable
         }
         System.out.println();
     }
+    */
 }
