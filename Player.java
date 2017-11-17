@@ -13,7 +13,7 @@ public class Player implements Serializable
     private boolean alive;
     private Game currentGame;
     private int playerNumber;
-    private boolean fairChance;
+    //private boolean fairChance;
 
 
     public Player(String colour, Game game, int p)
@@ -23,7 +23,7 @@ public class Player implements Serializable
         alive = true;
         currentGame = game;
         playerNumber = p;
-        fairChance = false;
+        //fairChance = false;
     }
 
     public int getPlayerNumber()
@@ -31,15 +31,15 @@ public class Player implements Serializable
         return playerNumber;
     }
 
-    public boolean gotFairChance()
-    {
-        return fairChance;
-    }
+    // public boolean gotFairChance()
+    // {
+    //     return fairChance;
+    // }
 
-    public void setFairChance(boolean chance)
-    {
-        fairChance = chance;
-    }
+    // public void setFairChance(boolean chance)
+    // {
+    //     fairChance = chance;
+    // }
 
     public String getColour()
     {
@@ -95,7 +95,7 @@ public class Player implements Serializable
     {
         if(currentGame.getBoard().addOrb(i, j, playerNumber, groupMatrix, root))
         {
-            fairChance = true;
+            //fairChance = true;
             currentGame.saveState();
             return true;
         }
@@ -121,11 +121,11 @@ public class Player implements Serializable
 
     public void undoTurn(Group[][] groupMatrix, Pane root)
     {
-        int x = this.getPlayerNumber() - 1;
-        if(x < 0)
-            x = this.currentGame.getNumberOfPlayers() - 1;
-        this.currentGame.getPlayer(x).setFairChance(false);
-        this.setFairChance(false);
+        // int x = this.getPlayerNumber() - 1;
+        // if(x < 0)
+        //     x = this.currentGame.getNumberOfPlayers() - 1;
+        // this.currentGame.getPlayer(x).setFairChance(false);
+        // this.setFairChance(false);
         currentGame.undo(groupMatrix, root);
     }
 
