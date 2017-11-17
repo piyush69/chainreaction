@@ -1,11 +1,11 @@
 package chainreaction;
 
-import javafx.animation.Interpolator;
-import javafx.animation.RotateTransition;
-import javafx.animation.Timeline;
+import javafx.animation.*;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.Pane;
+import javafx.scene.shape.Sphere;
 import javafx.util.Duration;
 
 import java.io.Serializable;
@@ -129,16 +129,180 @@ public class Board implements Serializable
             root.getChildren().add(groupMatrix[i][j]);
         }
 
+        /*
         while(!explosionQueue.isEmpty())
         {
-            Cell explodeCell = explosionQueue.remove();
-            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+            //Cell explodeCell = explosionQueue.remove();
+            //explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+
+            Orb orb = new Orb(players[playerNo].getColour());
+
+            for(int k = 0; !explosionQueue.isEmpty(); k++)
+            {
+                ParallelTransition pt = new ParallelTransition();
+
+                while(explosionQueue.peek().getExplodeDepth() == k)
+                {
+                    Cell explodeCell = explosionQueue.remove();
+                    explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+
+                    int a = explodeCell.getRow();
+                    int b = explodeCell.getCol();
+
+                    if(a > 0)
+                    {
+                        Sphere s = orb.makeOrb(cellSize);
+                        TranslateTransition tUp = new TranslateTransition(Duration.millis(1000), s);
+                        tUp.setFromX(b * cellSize + cellSize / 2);
+                        tUp.setFromY(60 + a * cellSize + cellSize / 2);
+                        tUp.setToY(60 + a * cellSize - cellSize / 2);
+                        pt.getChildren().add(tUp);
+                    }
+
+                    if(a < m - 1)
+                    {
+                        Sphere s = orb.makeOrb(cellSize);
+                        TranslateTransition tDown = new TranslateTransition(Duration.millis(1000), s);
+                        tDown.setFromX(b * cellSize + cellSize / 2);
+                        tDown.setFromY(60 + a * cellSize + cellSize / 2);
+                        tDown.setToY(60 + a * cellSize + 3 * cellSize / 2);
+                        pt.getChildren().add(tDown);
+                    }
+
+                    if(b > 0)
+                    {
+                        Sphere s = orb.makeOrb(cellSize);
+                        TranslateTransition tLeft = new TranslateTransition(Duration.millis(1000), s);
+                        tLeft.setFromX(b * cellSize + cellSize / 2);
+                        tLeft.setFromY(60 + a * cellSize + cellSize / 2);
+                        tLeft.setToX(b * cellSize - cellSize / 2);
+                        pt.getChildren().add(tLeft);
+                    }
+
+                    if(b < n - 1)
+                    {
+                        Sphere s = orb.makeOrb(cellSize);
+                        TranslateTransition tRight = new TranslateTransition(Duration.millis(1000), s);
+                        tRight.setFromX(b * cellSize + cellSize / 2);
+                        tRight.setFromY(60 + a * cellSize + cellSize / 2);
+                        tRight.setToX(b * cellSize + 3 * cellSize / 2);
+                        pt.getChildren().add(tRight);
+                    }
+                }
+
+                pt.play();
+
+                pt.setOnFinished(e -> { });
+            }
         }
+        */
+        BurstAnimation(playerNo, 1, groupMatrix, root);
 
         return true;
     }
 
-    public void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
+    public void BurstAnimation(int playerNo, int depth, Group[][] groupMatrix, Pane root)
+    {
+        if(!explosionQueue.isEmpty())
+        {
+            /*
+            Cell explodeCell = explosionQueue.remove();
+            explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+            */
+
+            Orb orb = new Orb(players[playerNo].getColour());
+
+            ParallelTransition pt = new ParallelTransition();
+            Queue<Cell> cellsToExplode = new LinkedList<Cell>();
+
+            while(explosionQueue.peek().getExplodeDepth() == depth)
+            {
+                Cell explodeCell = explosionQueue.remove();
+                cellsToExplode.add(explodeCell);
+                //explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+
+                int a = explodeCell.getRow();
+                int b = explodeCell.getCol();
+
+                if(a > 0)
+                {
+                    Sphere s1 = orb.makeOrb(cellSize);
+                    root.getChildren().add(s1);
+                    TranslateTransition tUp = new TranslateTransition(Duration.millis(500), s1);
+                    tUp.setCycleCount(1);
+                    tUp.setAutoReverse(false);
+                    tUp.setFromX(b * cellSize + cellSize / 2);
+                    tUp.setFromY(60 + a * cellSize + cellSize / 2);
+                    tUp.setToX(b * cellSize + cellSize / 2);
+                    tUp.setToY(60 + a * cellSize - cellSize / 2);
+                    tUp.setOnFinished(e -> { root.getChildren().remove(s1); });
+                    pt.getChildren().add(tUp);
+                }
+
+                if(a < m - 1)
+                {
+                    Sphere s2 = orb.makeOrb(cellSize);
+                    root.getChildren().add(s2);
+                    TranslateTransition tDown = new TranslateTransition(Duration.millis(500), s2);
+                    tDown.setCycleCount(1);
+                    tDown.setAutoReverse(false);
+                    tDown.setFromX(b * cellSize + cellSize / 2);
+                    tDown.setFromY(60 + a * cellSize + cellSize / 2);
+                    tDown.setToX(b * cellSize + cellSize / 2);
+                    tDown.setToY(60 + a * cellSize + 3 * cellSize / 2);
+                    tDown.setOnFinished(e -> { root.getChildren().remove(s2); });
+                    pt.getChildren().add(tDown);
+                }
+
+                if(b > 0)
+                {
+                    Sphere s3 = orb.makeOrb(cellSize);
+                    root.getChildren().add(s3);
+                    TranslateTransition tLeft = new TranslateTransition(Duration.millis(500), s3);
+                    tLeft.setCycleCount(1);
+                    tLeft.setAutoReverse(false);
+                    tLeft.setFromX(b * cellSize + cellSize / 2);
+                    tLeft.setFromY(60 + a * cellSize + cellSize / 2);
+                    tLeft.setToX(b * cellSize - cellSize / 2);
+                    tLeft.setToY(60 + a * cellSize + cellSize / 2);
+                    tLeft.setOnFinished(e -> { root.getChildren().remove(s3); });
+                    pt.getChildren().add(tLeft);
+                }
+
+                if(b < n - 1)
+                {
+                    Sphere s4 = orb.makeOrb(cellSize);
+                    root.getChildren().add(s4);
+                    TranslateTransition tRight = new TranslateTransition(Duration.millis(500), s4);
+                    tRight.setCycleCount(1);
+                    tRight.setAutoReverse(false);
+                    tRight.setFromX(b * cellSize + cellSize / 2);
+                    tRight.setFromY(60 + a * cellSize + cellSize / 2);
+                    tRight.setToX(b * cellSize + 3 * cellSize / 2);
+                    tRight.setToY(60 + a * cellSize + cellSize / 2);
+                    tRight.setOnFinished(e -> { root.getChildren().remove(s4); });
+                    pt.getChildren().add(tRight);
+                }
+
+                if(explosionQueue.isEmpty())
+                    break;
+            }
+
+            pt.setOnFinished(e ->
+            {
+                while(!cellsToExplode.isEmpty())
+                {
+                    Cell explodeCell = cellsToExplode.remove();
+                    explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
+                }
+                BurstAnimation(playerNo, depth + 1, groupMatrix, root);
+            });
+
+            pt.play();
+        }
+    }
+
+    private void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
     {
         Cell cell = board[i][j];
 
