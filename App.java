@@ -1,7 +1,5 @@
 package chainreaction;
 
-
-
 import javafx.animation.Interpolator;
 import javafx.animation.RotateTransition;
 import javafx.animation.Timeline;
@@ -29,8 +27,8 @@ import javafx.util.Duration;
 
 public class App extends Application
 {
-    private int m = 15;
-    private int n = 10;
+    private int m = 9;
+    private int n = 6;
     private final double cellSize = 900.0 / m;
     private int numberOfPlayers = 3;
     private Game currentGame;
@@ -66,9 +64,9 @@ public class App extends Application
         menuUndo.setOnAction((ActionEvent event) -> { currentGame.getCurrentPlayer().undoTurn(groupMatrix, root);
             for(int i = 0; i < numberOfPlayers; i++)
             {
-                System.out.println("Player " + (i + 1));
-                System.out.println("Cells occupied: " + currentGame.getPlayer(i).getNumberOfCellsOccupied());
-                System.out.println("Fair chance: " + currentGame.getPlayer(i).gotFairChance());
+                // System.out.println("Player " + (i + 1));
+                // System.out.println("Cells occupied: " + currentGame.getPlayer(i).getNumberOfCellsOccupied());
+                // System.out.println("Fair chance: " + currentGame.getPlayer(i).gotFairChance());
             }
             System.out.println();
         });
@@ -187,10 +185,11 @@ public class App extends Application
 
                 for(int k = 0; k < numberOfPlayers; k++)
                 {
-                    System.out.println("Player " + (k + 1));
-                    System.out.println("Cells occupied: " + currentGame.getPlayer(k).getNumberOfCellsOccupied());
-                    System.out.println("Fair chance: " + currentGame.getPlayer(k).gotFairChance());
+                    //System.out.println("Player " + (k + 1));
+                    //System.out.println("Cells occupied: " + currentGame.getPlayer(k).getNumberOfCellsOccupied());
+                    //System.out.println("Fair chance: " + currentGame.getPlayer(k).gotFairChance());
                 }
+                //System.out.println("Round No : "+ currentGame.currentRound);
                 System.out.println();
             });
         }

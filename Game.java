@@ -15,11 +15,13 @@ public class Game implements Serializable
     private int boardDimensionN;
     private String[] playerColours;
     private int currentPlayer;
+    public int currentRound;
 
     private int currentVersion;
     private int maxVersionCount;
     public static Board[] boardVersions;
     public static int[] currentPlayerVersions;
+    public static int[] roundNoVersions;
 
     public Game(int m, int n, int numberOfPlayers, String[] playerColours, double cellSize)
     {
@@ -33,6 +35,7 @@ public class Game implements Serializable
         for(int i = 0; i < numberOfPlayers; i++)
             players[i] = new Player(playerColours[i], this, i);
         currentPlayer = 0;
+        currentRound = 0;
 
         // (not) To be removed
         board = new Board(m, n, players, cellSize);
@@ -41,6 +44,7 @@ public class Game implements Serializable
         maxVersionCount = 1000;
         boardVersions = new Board[maxVersionCount];
         currentPlayerVersions = new int[maxVersionCount];
+        roundNoVersions = new int[maxVersionCount];
 
         for (int i = 0; i < maxVersionCount; i++)
         {
@@ -95,7 +99,7 @@ public class Game implements Serializable
             }
             for (int k = 0; k < numberOfPlayers; k++)
             {
-                if(players[k].getNumberOfCellsOccupied() == 0 && players[k].gotFairChance())
+                if(players[k].getNumberOfCellsOccupied() == 0 && currentRound != 0)
                     players[k].kill();
                 else
                     players[k].revive();
@@ -104,6 +108,8 @@ public class Game implements Serializable
             if(getNumberOfPlayersAlive() == 1)
                 return currentPlayer + 1;
 
+            if(currentPlayer == numberOfPlayers - 1)
+                currentRound = 1;
             do
             {
                 currentPlayer = (currentPlayer + 1) % numberOfPlayers;
@@ -174,18 +180,23 @@ public class Game implements Serializable
         {
             String filenameBoard = "gameboard.ser";
             String filenameCurrentPlayer = "gamecurrentplayer.ser";
+            //String filenameRoundNo = "gameRoundNo.ser";
 
             FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
             FileOutputStream fileCurrentPlayer = new FileOutputStream (filenameCurrentPlayer);
+            //FileOutputStream fileRoundNo = new FileOutputStream (filenameRoundNo);
 
             ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
             ObjectOutputStream outCurrentPlayer = new ObjectOutputStream (fileCurrentPlayer);
+            //ObjectOutputStream outRoundNo = new ObjectOutputStream (fileRoundNo);
 
             outBoard.writeObject(board);
             outCurrentPlayer.writeObject(currentPlayer);
+            //outRoundNo.writeObject(currentRound);
 
             outBoard.close();
             outCurrentPlayer.close();
+            //outRoundNo.close();
 
             fileBoard.close();
             fileCurrentPlayer.close();
@@ -200,6 +211,7 @@ public class Game implements Serializable
 
             boardVersions[currentVersion] = (Board)inBoard.readObject();
             currentPlayerVersions[currentVersion] = (int)inCurrentPlayer.readObject();
+            roundNoVersions[currentVersion] = currentRound;
 
             inBoard.close();
             inCurrentPlayer.close();
@@ -252,6 +264,7 @@ public class Game implements Serializable
 
             board = (Board)inBoard.readObject();
             currentPlayer = (int)inCurrentPlayer.readObject();
+            currentRound = roundNoVersions[currentVersion];
 
             inBoard.close();
             inCurrentPlayer.close();
@@ -281,7 +294,7 @@ public class Game implements Serializable
             }
             for (int k = 0; k < numberOfPlayers; k++)
             {
-                if(players[k].getNumberOfCellsOccupied() == 0 && players[k].gotFairChance())
+                if(players[k].getNumberOfCellsOccupied() == 0 && currentRound != 0)
                     players[k].kill();
                 else
                     players[k].revive();
