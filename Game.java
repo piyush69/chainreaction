@@ -18,7 +18,6 @@ public class Game implements Serializable
     private int maxVersionCount;
     public static Board[] boardVersions;
     public static int[] currentPlayerVersions;
-    //public static Player[][] allPlayerDataVersions;
 
     public Game(int m, int n, int numberOfPlayers, String[] playerColours)
     {
@@ -39,16 +38,11 @@ public class Game implements Serializable
         maxVersionCount = 100;
         boardVersions = new Board[maxVersionCount];
         currentPlayerVersions = new int[maxVersionCount];
-        //allPlayerDataVersions = new Player[maxVersionCount][numberOfPlayers];
 
         for (int i = 0; i < maxVersionCount; i++)
         {
             boardVersions[i] = new Board(m, n, players);
             currentPlayerVersions[i] = -1;
-            // for (int j = 0; j < numberOfPlayers; j++)
-            // {
-            //     allPlayerDataVersions[i][j] = new Player(playerColours[j], this, j);
-            // }
         }
     }
 
@@ -117,6 +111,8 @@ public class Game implements Serializable
                     {
                         if(players[i].getNumberOfCellsOccupied() == 0 && players[i].gotFairChance() == true)
                             players[i].kill();
+                        else
+                            players[i].revive();
                     }
 
                     // To be removed.
@@ -176,67 +172,6 @@ public class Game implements Serializable
             System.out.println("ClassNotFoundException" +" is caught");
         }
     }
-    // public void NsaveState()
-    // {
-    //     try
-    //     {
-    //         String filenameBoard = "gameboardTemp.ser";
-    //         String filenameCurrentPlayer = "gamecurrentplayerTemp.ser";
-    //         String filenameAllPlayerData = "gameallplayerdataTemp.ser";
-
-    //         FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
-    //         FileOutputStream fileCurrentPlayer = new FileOutputStream (filenameCurrentPlayer);
-    //         FileOutputStream fileAllPlayerData = new FileOutputStream (filenameAllPlayerData);
-
-    //         ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
-    //         ObjectOutputStream outCurrentPlayer = new ObjectOutputStream (fileCurrentPlayer);
-    //         ObjectOutputStream outAllPlayerData = new ObjectOutputStream (fileAllPlayerData);
-
-    //         outBoard.writeObject(board);
-    //         outCurrentPlayer.writeObject(currentPlayer);
-    //         outAllPlayerData.writeObject(players);
-            
-    //         outBoard.close();
-    //         outCurrentPlayer.close();
-    //         outAllPlayerData.close();
-
-    //         fileBoard.close();
-    //         fileCurrentPlayer.close();
-    //         fileAllPlayerData.close();
-            
-    //         FileInputStream fileBoard2 = new FileInputStream (filenameBoard);
-    //         FileInputStream fileCurrentPlayer2 = new FileInputStream (filenameCurrentPlayer);
-    //         FileInputStream fileAllPlayerData2 = new FileInputStream (filenameAllPlayerData);
-
-    //         ObjectInputStream inBoard = new ObjectInputStream (fileBoard2);
-    //         ObjectInputStream inCurrentPlayer = new ObjectInputStream (fileCurrentPlayer2);
-    //         ObjectInputStream inAllPlayerData = new ObjectInputStream (fileAllPlayerData2);
-
-    //         currentVersion = (currentVersion + 1) % maxVersionCount;
-
-    //         boardVersions[currentVersion] = (Board)inBoard.readObject();
-    //         currentPlayerVersions[currentVersion] = (int)inCurrentPlayer.readObject();
-    //         allPlayerDataVersions[currentVersion] = (Player[])inAllPlayerData.readObject();
-            
-    //         System.out.println(currentVersion);
-
-    //         inBoard.close();
-    //         inCurrentPlayer.close();
-    //         inAllPlayerData.close();
-
-    //         fileBoard2.close();
-    //         fileCurrentPlayer2.close();
-    //         fileAllPlayerData2.close();
-    //     }
-    //     catch (IOException e)
-    //     {
-    //         System.out.println(e);
-    //     }
-    //     catch (ClassNotFoundException ex)
-    //     {
-    //         System.out.println("ClassNotFoundException" +" is caught");
-    //     }
-    // }
 
     public void undo()
     {
@@ -274,11 +209,6 @@ public class Game implements Serializable
             board = (Board)inBoard.readObject();
             currentPlayer = (int)inCurrentPlayer.readObject();
 
-            // if(currentPlayer == -2)
-            // {
-            //     currentPlayer += numberOfPlayers;
-            // }
-
             inBoard.close();
             inCurrentPlayer.close();
 
@@ -294,71 +224,6 @@ public class Game implements Serializable
             System.out.println("ClassNotFoundException" +" is caught");
         }
     }
-    // public void Nundo()
-    // {
-    //     try
-    //     {
-    //         String filenameBoard = "gameboardTemp.ser";
-    //         String filenameCurrentPlayer = "gamecurrentplayerTemp.ser";
-    //         String filenameAllPlayerData = "gameallplayerdataTemp.ser";
-            
-    //         FileOutputStream fileBoard = new FileOutputStream(filenameBoard);
-    //         FileOutputStream fileCurrentPlayer = new FileOutputStream(filenameCurrentPlayer);
-    //         FileOutputStream fileAllPlayerData = new FileOutputStream(filenameAllPlayerData);
-
-    //         ObjectOutputStream outBoard = new ObjectOutputStream(fileBoard);
-    //         ObjectOutputStream outCurrentPlayer = new ObjectOutputStream(fileCurrentPlayer);
-    //         ObjectOutputStream outAllPlayerData = new ObjectOutputStream(fileAllPlayerData);
-            
-    //         if(currentVersion != 0)
-    //         {
-    //             currentVersion -= 1;
-    //         }
-
-    //         outBoard.writeObject(boardVersions[currentVersion]);
-    //         outCurrentPlayer.writeObject(currentPlayerVersions[currentVersion]);
-    //         outAllPlayerData.writeObject(allPlayerDataVersions[currentVersion]);
-            
-    //         outBoard.close();
-    //         outCurrentPlayer.close();
-    //         outAllPlayerData.close();
-            
-    //         fileBoard.close();
-    //         fileCurrentPlayer.close();
-    //         fileAllPlayerData.close();
-            
-    //         FileInputStream fileBoard2 = new FileInputStream(filenameBoard);
-    //         FileInputStream fileCurrentPlayer2 = new FileInputStream(filenameCurrentPlayer);
-    //         FileInputStream fileAllPlayerData2 = new FileInputStream(filenameAllPlayerData); 
-
-    //         ObjectInputStream inBoard = new ObjectInputStream(fileBoard2);
-    //         ObjectInputStream inCurrentPlayer = new ObjectInputStream(fileCurrentPlayer2);
-    //         ObjectInputStream inAllPlayerData = new ObjectInputStream(fileAllPlayerData2);
-
-    //         board = (Board)inBoard.readObject();
-    //         currentPlayer = (int)inCurrentPlayer.readObject();
-    //         players = (Player[])inAllPlayerData.readObject();
-
-    //         //System.out.println(currentPlayer);
-    //         //currentPlayer -= 1;
-
-    //         inBoard.close();
-    //         inCurrentPlayer.close();
-    //         inAllPlayerData.close();
-
-    //         fileBoard2.close();
-    //         fileCurrentPlayer2.close();
-    //         fileAllPlayerData2.close();
-    //     }
-    //     catch (IOException e)
-    //     {
-    //         System.out.println("IOException is caught");
-    //     }
-    //     catch (ClassNotFoundException ex)
-    //     {
-    //         System.out.println("ClassNotFoundException is caught");
-    //     }
-    // }
 
     public void restart()
     {

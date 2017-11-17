@@ -57,6 +57,11 @@ public class Player implements Serializable
         alive = false;
     }
 
+    public void revive()
+    {
+        alive = true;
+    }
+
     public void incrementNumberOfCellsOccupied()
     {
         numberOfCellsOccupied++;
