@@ -1,6 +1,8 @@
 package chainreaction;
 
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 
 import java.util.*;
 
@@ -54,9 +56,9 @@ public class Player
         return numberOfCellsOccupied;
     }
 
-    public boolean takeTurn(int i, int j)
+    public boolean takeTurn(int i, int j, Group[][] groupMatrix, Pane root)
     {
-        if(currentGame.getBoard().addOrb(i, j, this))
+        if(currentGame.getBoard().addOrb(i, j, this, groupMatrix, root))
             return true;
 
         return false;

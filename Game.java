@@ -1,6 +1,8 @@
 package chainreaction;
 
+import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 
 public class Game
 {
@@ -10,7 +12,7 @@ public class Game
     private String[] playerColours;
     private int turnPlayer;
 
-    public Game(int m, int n, int numberOfPlayers, String[] playerColours, Scene scene, double cellSize)
+    public Game(int m, int n, int numberOfPlayers, String[] playerColours, double cellSize)
     {
         // board = new Board(m, n); // To be restored
         this.numberOfPlayers = numberOfPlayers;
@@ -21,7 +23,7 @@ public class Game
         turnPlayer = 0;
 
         // To be removed
-        board = new Board(m, n, players, scene, cellSize);
+        board = new Board(m, n, players, cellSize);
     }
 
     public Board getBoard()
@@ -29,9 +31,9 @@ public class Game
         return board;
     }
 
-    public int move(int i, int j)
+    public int move(int i, int j, Group[][] groupMatrix, Pane root)
     {
-        boolean success = players[turnPlayer].takeTurn(i, j);
+        boolean success = players[turnPlayer].takeTurn(i, j, groupMatrix, root);
 
         if(success)
         {
