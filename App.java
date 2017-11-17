@@ -37,9 +37,9 @@ public class App extends Application
     private int m = 9;
     private int n = 6;
     private final double cellSize = 900.0 / m;
-    private int numberOfPlayers = 3;
+    private int numberOfPlayers = 2;
     private Game currentGame;
-    private boolean gameInProgress = true;
+    //private boolean gameInProgress = true;
     private int winner = 0;
     private Scene scene;
     private Pane root;
@@ -81,7 +81,7 @@ public class App extends Application
         Button resumebtn = new Button ("Resume");
         //resumebtn.setOnAction(e -> gameBegin(primaryStage) );
         Button settingsbtn = new Button ("Settings");
-        settingsbtn.setOnAction(e -> settings(primaryStage) ); 
+        settingsbtn.setOnAction(e -> settings(primaryStage) );
         vboxButtons.getChildren().addAll(startbtn, resumebtn, settingsbtn);
 
         root.setTop(vboxName);
@@ -89,7 +89,7 @@ public class App extends Application
         // root.setLeft();
         // root.setRight();
         root.setCenter(vboxButtons);
-        
+
         Scene scene = new Scene(root, 600.0, 970.0);
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -148,10 +148,8 @@ public class App extends Application
                 if(i == 5 && j == 5)
                 {
                     groupMatrix[i][j].getChildren().clear();
-
                     Cluster c1 = new Cluster("#FF0000", 3);
                     Group g1 = c1.createCluster(cellSize);
-
                     groupMatrix[i][j] = g1;
                     groupMatrix[i][j].setTranslateX(j * cellSize);
                     groupMatrix[i][j].setTranslateY(i * cellSize);
@@ -209,7 +207,7 @@ public class App extends Application
             } );
             vboxSettings.getChildren().addAll(cp[i],txt[i]);
         }
-        
+
         Button backbtn = new Button ("Back");
         backbtn.setOnAction(e -> homePage(primaryStage) );
         vboxSettings.getChildren().add(backbtn);
@@ -243,10 +241,10 @@ public class App extends Application
 
             setOnMouseClicked(event ->
             {
-                if(event.getButton() == MouseButton.PRIMARY && gameInProgress)
+                if(event.getButton() == MouseButton.PRIMARY && currentGame.getGameInProgress())
                 {
-                    int result = currentGame.move(i, j, groupMatrix, root);
-
+                    //int result = currentGame.move(i, j, groupMatrix, root);
+                    currentGame.move(i, j, groupMatrix, root);
                     /*
                     if(result == 0)
                     {
@@ -255,12 +253,14 @@ public class App extends Application
                     */
 
                     // Player has won.
+                    /*
                     if(result > 0)
                     {
                         // Include in GUI
                         System.out.println("Player " + result + " wins!");
                         gameInProgress = false;
                     }
+                    */
                 }
 
                 //for debugging purposes

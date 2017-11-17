@@ -196,6 +196,7 @@ public class Board implements Serializable
             }
         }
         */
+
         BurstAnimation(playerNo, 1, groupMatrix, root);
 
         return true;
@@ -299,6 +300,11 @@ public class Board implements Serializable
             });
 
             pt.play();
+        }
+
+        else
+        {
+            players[playerNo].getCurrentGame().endMove();
         }
     }
 

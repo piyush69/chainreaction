@@ -16,6 +16,7 @@ public class Game implements Serializable
     private String[] playerColours;
     private int currentPlayer;
     private int currentRound;
+    private boolean gameInProgress;
 
     private int currentVersion;
     private int maxVersionCount;
@@ -34,15 +35,16 @@ public class Game implements Serializable
         currentPlayer = 0;
         currentRound = 0;
         currentVersion = 0;
+        gameInProgress = true;
 
         players = new Player[numberOfPlayers];
         for(int i = 0; i < numberOfPlayers; i++)
             players[i] = new Player(playerColours[i], this, i);
-        
+
         board = new Board(m, n, players, cellSize);
 
         maxVersionCount = 1000;
-        
+
         boardVersions = new Board[maxVersionCount];
         currentPlayerVersions = new int[maxVersionCount];
         roundNoVersions = new int[maxVersionCount];
@@ -74,10 +76,17 @@ public class Game implements Serializable
         return numberOfPlayers;
     }
 
-    public int move(int i, int j, Group[][] groupMatrix, Pane root)
+    public boolean getGameInProgress()
     {
-        boolean success = players[currentPlayer].takeTurn(i, j, groupMatrix, root);
+        return gameInProgress;
+    }
 
+    public void move(int i, int j, Group[][] groupMatrix, Pane root)
+    {
+        //boolean success = players[currentPlayer].takeTurn(i, j, groupMatrix, root);
+        players[currentPlayer].takeTurn(i, j, groupMatrix, root);
+
+        /*
         if(success)
         {
             int numCellsEmpty = boardDimensionM * boardDimensionN;
@@ -107,7 +116,10 @@ public class Game implements Serializable
             }
 
             if(getNumberOfPlayersAlive() == 1)
-                return currentPlayer + 1;
+            {
+
+            }
+                //return currentPlayer + 1;
 
             if(currentPlayer == numberOfPlayers - 1)
                 currentRound = 1;
@@ -117,10 +129,58 @@ public class Game implements Serializable
             }
             while(!players[currentPlayer].isAlive());
 
-            return 0;
+            //return 0;
         }
 
-        return -1;
+        //return -1;
+        */
+    }
+
+    public void endMove()
+    {
+        int numCellsEmpty = boardDimensionM * boardDimensionN;
+
+        for (int k = 0; k < numberOfPlayers; k++)
+        {
+            players[k].setNumberOfCellsOccupied(0);
+        }
+        for (int k = 0; k < boardDimensionM; k++)
+        {
+            for (int l = 0; l < boardDimensionN; l++)
+            {
+                int temp = board.getCell(k, l).getPlayerNoInControl();
+                if(temp != -1)
+                {
+                    players[temp].addNumberOfCellsOccupied(1);
+                    numCellsEmpty -= 1;
+                }
+            }
+        }
+        for (int k = 0; k < numberOfPlayers; k++)
+        {
+            if(players[k].getNumberOfCellsOccupied() == 0 && currentRound != 0)
+                players[k].kill();
+            else
+                players[k].revive();
+        }
+
+        if(getNumberOfPlayersAlive() == 1)
+        {
+            //return currentPlayer + 1;
+            System.out.println("Player " + (currentPlayer + 1) + " wins!");
+            gameInProgress = false;
+        }
+
+        else
+        {
+            if(currentPlayer == numberOfPlayers - 1)
+                currentRound = 1;
+            do
+            {
+                currentPlayer = (currentPlayer + 1) % numberOfPlayers;
+            }
+            while(!players[currentPlayer].isAlive());
+        }
     }
 
     public int getNumberOfPlayersAlive()

@@ -31,6 +31,11 @@ public class Player implements Serializable
         return playerNumber;
     }
 
+    public Game getCurrentGame()
+    {
+        return currentGame;
+    }
+
     // public boolean gotFairChance()
     // {
     //     return fairChance;
