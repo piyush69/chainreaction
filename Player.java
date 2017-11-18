@@ -101,7 +101,7 @@ public class Player implements Serializable
         if(currentGame.getBoard().addOrb(i, j, playerNumber, groupMatrix, root))
         {
             //fairChance = true;
-            currentGame.saveState();
+            //currentGame.saveState();
             return true;
         }
 

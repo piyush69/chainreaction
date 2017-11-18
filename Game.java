@@ -1,10 +1,12 @@
 package chainreaction;
 
+import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 
 import java.io.*;
+import java.util.concurrent.FutureTask;
 
 public class Game implements Serializable
 {
@@ -83,9 +85,10 @@ public class Game implements Serializable
 
     public void move(int i, int j, Group[][] groupMatrix, Pane root)
     {
+        System.out.println(this.currentPlayer);
         //boolean success = players[currentPlayer].takeTurn(i, j, groupMatrix, root);
         players[currentPlayer].takeTurn(i, j, groupMatrix, root);
-
+        //
         /*
         if(success)
         {
@@ -117,7 +120,8 @@ public class Game implements Serializable
 
             if(getNumberOfPlayersAlive() == 1)
             {
-
+                System.out.println("Player " + (currentPlayer + 1) + " wins!");
+                gameInProgress = false;
             }
                 //return currentPlayer + 1;
 
@@ -138,6 +142,23 @@ public class Game implements Serializable
 
     public void endMove()
     {
+        /*
+        for(int k = 0; k < numberOfPlayers; k++)
+        {
+            System.out.println("Player " + (k + 1));
+            System.out.println("Cells occupied: " + getPlayer(k).getNumberOfCellsOccupied());
+            System.out.println("Is Alive: " + getPlayer(k).isAlive());
+            System.out.println("Player Color: " + getPlayer(k).getColour());
+        }
+        System.out.println("Round No : "+ currentRound);
+        System.out.println();
+        */
+
+        System.out.println(this.currentPlayer);
+        saveState();
+
+        //System.out.println("Move end");
+
         int numCellsEmpty = boardDimensionM * boardDimensionN;
 
         for (int k = 0; k < numberOfPlayers; k++)
@@ -171,16 +192,16 @@ public class Game implements Serializable
             gameInProgress = false;
         }
 
-        else
+        if(currentPlayer == numberOfPlayers - 1)
+            currentRound = 1;
+        do
         {
-            if(currentPlayer == numberOfPlayers - 1)
-                currentRound = 1;
-            do
-            {
-                currentPlayer = (currentPlayer + 1) % numberOfPlayers;
-            }
-            while(!players[currentPlayer].isAlive());
+            currentPlayer = (currentPlayer + 1) % numberOfPlayers;
         }
+        while(!players[currentPlayer].isAlive());
+
+        System.out.println(this.currentPlayer);
+        System.out.println();
     }
 
     public int getNumberOfPlayersAlive()

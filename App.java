@@ -37,7 +37,7 @@ public class App extends Application
     private int m = 9;
     private int n = 6;
     private final double cellSize = 900.0 / m;
-    private int numberOfPlayers = 2;
+    private int numberOfPlayers = 3;
     private Game currentGame;
     //private boolean gameInProgress = true;
     private int winner = 0;
