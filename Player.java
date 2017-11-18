@@ -1,130 +1,121 @@
 package chainreaction;
 
-import java.util.*;
-import java.io.*;
+import javafx.scene.Group;
+import javafx.scene.layout.Pane;
 
+import java.io.Serializable;
+
+
+/**
+ * The Player class is used to store the state of the player
+ */
 public class Player implements Serializable
 {
     private String colour;
     private int numberOfCellsOccupied;
-    private int playerNumber;
     private boolean alive;
     private Game currentGame;
-    private boolean fairChance;
+    private int playerNumber;
 
+    /**
+     * @param colour String representing the colour of the player
+     * @param game Instance of the game in which the player is present
+     * @param p Player number
+     */
     public Player(String colour, Game game, int p)
     {
         this.colour = colour;
         numberOfCellsOccupied = 0;
-        playerNumber = p;
         alive = true;
         currentGame = game;
-        fairChance = false;
+        playerNumber = p;
     }
 
+    /**
+     * @return Player number
+     */
     public int getPlayerNumber()
     {
         return playerNumber;
     }
 
-    public boolean gotFairChance()
+    /**
+     * @return Instance of the current game
+     */
+    public Game getCurrentGame()
     {
-        return fairChance;
+        return currentGame;
     }
 
-    public void setFairChance(boolean chance)
-    {
-        fairChance = chance;
-    }
-
+    /**
+     * @return Colour of the player
+     */
     public String getColour()
     {
         return colour;
     }
 
-    public void setColour(String colour)
-    {
-        this.colour = colour;
-    }
-
+    /**
+     * @return true if the player is alive; false otherwise
+     */
     public boolean isAlive()
     {
         return alive;
     }
 
+    /**
+     * Kills the player
+     */
     public void kill()
     {
         alive = false;
     }
 
+    /**
+     * Revives the player
+     */
     public void revive()
     {
         alive = true;
     }
 
+    /**
+     * Increments the number of cells occupied by the player by one
+     */
     public void incrementNumberOfCellsOccupied()
     {
         numberOfCellsOccupied++;
     }
 
+    /**
+     * Increments the number of cells occupied by the player by one
+     */
     public void decrementNumberOfCellsOccupied()
     {
         numberOfCellsOccupied--;
     }
 
+    /**
+     * @return Number of cells occupied by the player
+     */
     public int getNumberOfCellsOccupied()
     {
         return numberOfCellsOccupied;
     }
 
+    /**
+     * @param num Number of cells to be occupied by the player
+     */
     public void setNumberOfCellsOccupied(int num)
     {
         numberOfCellsOccupied = num;
     }
 
+    /**
+     * @param num Number of cells to be added
+     */
     public void addNumberOfCellsOccupied(int num)
     {
         numberOfCellsOccupied += num;
-    }
-
-    public void takeTurn()
-    {
-        // To be removed.
-        Scanner input = new Scanner(System.in);
-        boolean done = false;
-        this.fairChance = true;
-        while(!done)
-        {
-            System.out.println("Enter i and j");
-            int i = input.nextInt();
-            int j = input.nextInt();
-            
-            //System.out.println("Sending "+Integer.toString(this.getPlayerNumber())+" to addORb");
-
-            if(i == -1 && j == -1)
-            {
-                int x = this.getPlayerNumber() - 1;
-                if(x < 0)
-                {
-                    x = this.currentGame.getNumberOfPlayers() - 1;
-                }
-                this.currentGame.getPlayer(x).setFairChance(false);
-                this.setFairChance(false);
-                currentGame.undo();
-                done = true;
-            }
-            else if(i == -2 && j == -2) //to be placed somewhere else
-            {
-                currentGame.restart();
-                done = true;
-            }
-            else if(!currentGame.getBoard().addOrb(i, j, this.getPlayerNumber()))
-                System.out.println("Try again");
-            else
-            {
-                currentGame.saveState();
-                done = true;
-            }
-        }
     }
 }
