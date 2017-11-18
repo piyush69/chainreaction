@@ -3,7 +3,16 @@ package chainreaction;
 import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.stage.Stage;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.Text;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.effect.Reflection;
+import javafx.geometry.Pos;
 
 import java.io.*;
 import java.util.concurrent.FutureTask;
@@ -28,8 +37,6 @@ public class Game implements Serializable
 
     public Game(int m, int n, int numberOfPlayers, String[] playerColours, double cellSize)
     {
-        // board = new Board(m, n); // To be restored
-
         boardDimensionM = m;
         boardDimensionN = n;
         this.numberOfPlayers = numberOfPlayers;
@@ -43,7 +50,7 @@ public class Game implements Serializable
         for(int i = 0; i < numberOfPlayers; i++)
             players[i] = new Player(playerColours[i], this, i);
 
-        board = new Board(m, n, players, cellSize);
+        board = new Board(m, n, players, cellSize, this);
 
         maxVersionCount = 1000;
 
@@ -53,7 +60,7 @@ public class Game implements Serializable
 
         for (int i = 0; i < maxVersionCount; i++)
         {
-            boardVersions[i] = new Board(m, n, players, cellSize);
+            boardVersions[i] = new Board(m, n, players, cellSize, this);
             currentPlayerVersions[i] = -1;
         }
     }
@@ -73,6 +80,11 @@ public class Game implements Serializable
         return players[currentPlayer];
     }
 
+    public int getCurrentPlayerNo()
+    {
+        return currentPlayer;
+    }
+
     public int getNumberOfPlayers()
     {
         return numberOfPlayers;
@@ -85,79 +97,20 @@ public class Game implements Serializable
 
     public void move(int i, int j, Group[][] groupMatrix, Pane root)
     {
-        System.out.println(this.currentPlayer);
-        //boolean success = players[currentPlayer].takeTurn(i, j, groupMatrix, root);
-        players[currentPlayer].takeTurn(i, j, groupMatrix, root);
-        //
-        /*
-        if(success)
-        {
-            int numCellsEmpty = boardDimensionM * boardDimensionN;
-
-            for (int k = 0; k < numberOfPlayers; k++)
-            {
-                players[k].setNumberOfCellsOccupied(0);
-            }
-            for (int k = 0; k < boardDimensionM; k++)
-            {
-                for (int l = 0; l < boardDimensionN; l++)
-                {
-                    int temp = board.getCell(k, l).getPlayerNoInControl();
-                    if(temp != -1)
-                    {
-                        players[temp].addNumberOfCellsOccupied(1);
-                        numCellsEmpty -= 1;
-                    }
-                }
-            }
-            for (int k = 0; k < numberOfPlayers; k++)
-            {
-                if(players[k].getNumberOfCellsOccupied() == 0 && currentRound != 0)
-                    players[k].kill();
-                else
-                    players[k].revive();
-            }
-
-            if(getNumberOfPlayersAlive() == 1)
-            {
-                System.out.println("Player " + (currentPlayer + 1) + " wins!");
-                gameInProgress = false;
-            }
-                //return currentPlayer + 1;
-
-            if(currentPlayer == numberOfPlayers - 1)
-                currentRound = 1;
-            do
-            {
-                currentPlayer = (currentPlayer + 1) % numberOfPlayers;
-            }
-            while(!players[currentPlayer].isAlive());
-
-            //return 0;
-        }
-
-        //return -1;
-        */
+        //System.out.println("[+] " + this.currentPlayer + " is starting its Turn");
+        //players[currentPlayer].takeTurn(i, j, groupMatrix, root);
+        int x = this.getBoard().addOrb(i, j, currentPlayer, groupMatrix, root);
+        if(x != -1)
+            this.currentPlayer = x;
+        //System.out.println("[-] " + this.currentPlayer + " is exiting move");
+        //System.out.println("[ ] "+currentVersion+" Current Version in Memory");
+        //System.out.println();
     }
 
-    public void endMove()
+    public int endMove(int playah)
     {
-        /*
-        for(int k = 0; k < numberOfPlayers; k++)
-        {
-            System.out.println("Player " + (k + 1));
-            System.out.println("Cells occupied: " + getPlayer(k).getNumberOfCellsOccupied());
-            System.out.println("Is Alive: " + getPlayer(k).isAlive());
-            System.out.println("Player Color: " + getPlayer(k).getColour());
-        }
-        System.out.println("Round No : "+ currentRound);
-        System.out.println();
-        */
-
-        System.out.println(this.currentPlayer);
+        this.currentPlayer = playah;
         saveState();
-
-        //System.out.println("Move end");
 
         int numCellsEmpty = boardDimensionM * boardDimensionN;
 
@@ -187,9 +140,25 @@ public class Game implements Serializable
 
         if(getNumberOfPlayersAlive() == 1)
         {
-            //return currentPlayer + 1;
-            System.out.println("Player " + (currentPlayer + 1) + " wins!");
             gameInProgress = false;
+            BorderPane toor = new BorderPane();
+            toor.setPrefSize(600.0, 330.0);
+            Text name = new Text("Player " + (currentPlayer + 1) + " wins!");
+            name.setFill(Color.STEELBLUE);
+            name.setFont(Font.font("SanSerif", FontWeight.BOLD, 60));
+            Reflection ref = new Reflection();
+            name.setEffect(ref);
+
+            VBox vboxName = new VBox();
+            vboxName.setAlignment(Pos.CENTER);
+            vboxName.getChildren().add(name);
+            vboxName.setPrefHeight(330);
+            toor.setCenter(vboxName);
+            Scene scn = new Scene(toor, 600.0, 330.0);
+            Stage win = new Stage();
+            win.setScene(scn);
+            win.setResizable(false);
+            win.show();
         }
 
         if(currentPlayer == numberOfPlayers - 1)
@@ -199,9 +168,7 @@ public class Game implements Serializable
             currentPlayer = (currentPlayer + 1) % numberOfPlayers;
         }
         while(!players[currentPlayer].isAlive());
-
-        System.out.println(this.currentPlayer);
-        System.out.println();
+        return this.currentPlayer;
     }
 
     public int getNumberOfPlayersAlive()
@@ -216,45 +183,6 @@ public class Game implements Serializable
 
         return alive;
     }
-
-    /*
-    public void play()
-    {
-        boolean done = false;
-
-        while(!done)
-        {
-            for(int i = 0; i < numberOfPlayers; i++)
-            {
-                if(players[i].isAlive())
-                {
-                    int numberOfPlayersAlive = 0;
-                    for(int j = 0; j < numberOfPlayers; j++)
-                    {
-                        if(players[j].isAlive())
-                            numberOfPlayersAlive++;
-                    }
-
-                    if(numberOfPlayersAlive == 1)
-                    {
-                        // Player has won. Terminate.
-                        System.out.println("Player " + (i + 1) + " wins!");
-                        done = true;
-                        break;
-                    }
-
-                    // To be removed.
-                    System.out.println("Player " + (i + 1));
-
-                    players[i].takeTurn();
-
-                    // To be removed.
-                    board.display();
-                }
-            }
-        }
-    }
-    */
 
     public void saveState()
     {
@@ -282,9 +210,11 @@ public class Game implements Serializable
 
             fileBoard.close();
             fileCurrentPlayer.close();
+            //fileRoundNo.close();
 
             FileInputStream fileBoard2 = new FileInputStream (filenameBoard);
             FileInputStream fileCurrentPlayer2 = new FileInputStream (filenameCurrentPlayer);
+            //FileInputStream fileRoundNo2 = new FileInputStream (filenameRoundNo);
 
             ObjectInputStream inBoard = new ObjectInputStream (fileBoard2);
             ObjectInputStream inCurrentPlayer = new ObjectInputStream (fileCurrentPlayer2);
@@ -300,6 +230,7 @@ public class Game implements Serializable
 
             fileBoard2.close();
             fileCurrentPlayer2.close();
+            //System.out.println("[ ] "+currentVersion+" Save State Current Version");
         }
         catch (IOException e)
         {
@@ -387,6 +318,8 @@ public class Game implements Serializable
                 currentPlayer = (currentPlayer + 1) % numberOfPlayers;
             }
             while(!players[currentPlayer].isAlive());
+            //System.out.println("[u] "+currentPlayer+" will now take turn");
+            //System.out.println("[ ] "+currentVersion+" Current Version\n");
         }
         catch (IOException e)
         {
@@ -400,7 +333,7 @@ public class Game implements Serializable
 
     public void restart(Group[][] groupMatrix, Pane root, double cellSize)
     {
-        board = new Board(boardDimensionM, boardDimensionN, players, cellSize);
+        board = new Board(boardDimensionM, boardDimensionN, players, cellSize, this);
         currentPlayer = 0;
         currentVersion = 0;
         currentRound = 0;
@@ -409,68 +342,31 @@ public class Game implements Serializable
 
     public void exit()
     {
-        try
+        ////System.out.println("Stage is closing");
+        if(this.getGameInProgress())
         {
-            String filenameBoard = "gameboardData.ser";
-            String filenameCurrentPlayer = "gamecurrentplayerData.ser";
-            String filenamePlayerList = "gamePlayerListData.ser";
-
-            FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
-            FileOutputStream fileCurrentPlayer = new FileOutputStream (filenameCurrentPlayer);
-            FileOutputStream filePlayerList = new FileOutputStream (filenamePlayerList);
-
-            ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
-            ObjectOutputStream outCurrentPlayer = new ObjectOutputStream (fileCurrentPlayer);
-            ObjectOutputStream outPlayerList = new ObjectOutputStream (filePlayerList);
-
-            outBoard.writeObject(board);
-            outCurrentPlayer.writeObject(currentPlayer);
-            outPlayerList.writeObject(players);
-
-            outBoard.close();
-            outCurrentPlayer.close();
-            outPlayerList.close();
-
-            fileBoard.close();
-            fileCurrentPlayer.close();
-            filePlayerList.close();
+            try
+            {
+                String filenameBoard = "gameData.ser";
+                FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
+                ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
+                outBoard.writeObject(this);
+                outBoard.close();
+                fileBoard.close();
+            }
+            catch (IOException e)
+            {
+                System.out.println(e);
+            }    
         }
-        catch (IOException e)
+        else
         {
-            System.out.println(e);
+            File file = new File("gameData.ser");
+            file.delete();
         }
+        // File f2 = new File("gameboard.ser");
+        // f2.delete();
+        // f2 = new File("gamecurrentplayer.ser");
+        // f2.delete();
     }
-
-
-    /*
-    private void serialize()
-    {
-        // Code to be written.
-    }
-
-    private void deserialize()
-    {
-        // Code to be written.
-    }
-
-    public void pause()
-    {
-        // Code to be written.
-    }
-
-    public void undo()
-    {
-        // Code to be written.
-    }
-
-    public void restart()
-    {
-        // Code to be written.
-    }
-
-    public void exit()
-    {
-        // Code to be written.
-    }
-    */
 }

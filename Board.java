@@ -19,13 +19,15 @@ public class Board implements Serializable
     private Queue<Cell> explosionQueue;
     private double cellSize;
     private Player[] players;
-
-    public Board(int m, int n, Player[] players, double cellSize)
+    private Game myGame;
+    private int x = -100;
+    public Board(int m, int n, Player[] players, double cellSize, Game game)
     {
         this.m = m;
         this.n = n;
         this.players = players;
         this.cellSize = cellSize;
+        this.myGame = game;
 
         board = new Cell[m][n];
         for(int i = 0; i < m; i++)
@@ -51,6 +53,10 @@ public class Board implements Serializable
         return board[i][j];
     }
 
+    public Game getMyGame()
+    {
+        return myGame;
+    }
     public void explode(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
     {
         players[playerNo].decrementNumberOfCellsOccupied();
@@ -64,20 +70,20 @@ public class Board implements Serializable
             explosiveAddOrb(i, j + 1, playerNo, explodeDepth, groupMatrix, root);
     }
 
-    public boolean addOrb(int i, int j, int playerNo, Group[][] groupMatrix, Pane root)
+    public int addOrb(int i, int j, int playerNo, Group[][] groupMatrix, Pane root)
     {
         if(i < 0 || i >= m || j < 0 || j >= n)
         {
             // Throw exception.
-            return false;
+            return -1;
         }
 
         Cell cell = board[i][j];
 
-        if(cell.getPlayerNoInControl() != -1 & cell.getPlayerNoInControl() != playerNo)
+        if(cell.getPlayerNoInControl() != -1 && cell.getPlayerNoInControl() != playerNo)
         {
             // Throw exception.
-            return false;
+            return -1;
         }
 
         if(cell.getPlayerNoInControl() == -1)
@@ -85,8 +91,6 @@ public class Board implements Serializable
             cell.setPlayerNoInControl(playerNo);
             players[playerNo].incrementNumberOfCellsOccupied();
         }
-
-        // Need to incorporate parallel.
 
         if(cell.incrementOrbAndCheckExplosion())
         {
@@ -129,81 +133,12 @@ public class Board implements Serializable
             root.getChildren().add(groupMatrix[i][j]);
         }
 
-        /*
-        while(!explosionQueue.isEmpty())
-        {
-            //Cell explodeCell = explosionQueue.remove();
-            //explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
-
-            Orb orb = new Orb(players[playerNo].getColour());
-
-            for(int k = 0; !explosionQueue.isEmpty(); k++)
-            {
-                ParallelTransition pt = new ParallelTransition();
-
-                while(explosionQueue.peek().getExplodeDepth() == k)
-                {
-                    Cell explodeCell = explosionQueue.remove();
-                    explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
-
-                    int a = explodeCell.getRow();
-                    int b = explodeCell.getCol();
-
-                    if(a > 0)
-                    {
-                        Sphere s = orb.makeOrb(cellSize);
-                        TranslateTransition tUp = new TranslateTransition(Duration.millis(1000), s);
-                        tUp.setFromX(b * cellSize + cellSize / 2);
-                        tUp.setFromY(60 + a * cellSize + cellSize / 2);
-                        tUp.setToY(60 + a * cellSize - cellSize / 2);
-                        pt.getChildren().add(tUp);
-                    }
-
-                    if(a < m - 1)
-                    {
-                        Sphere s = orb.makeOrb(cellSize);
-                        TranslateTransition tDown = new TranslateTransition(Duration.millis(1000), s);
-                        tDown.setFromX(b * cellSize + cellSize / 2);
-                        tDown.setFromY(60 + a * cellSize + cellSize / 2);
-                        tDown.setToY(60 + a * cellSize + 3 * cellSize / 2);
-                        pt.getChildren().add(tDown);
-                    }
-
-                    if(b > 0)
-                    {
-                        Sphere s = orb.makeOrb(cellSize);
-                        TranslateTransition tLeft = new TranslateTransition(Duration.millis(1000), s);
-                        tLeft.setFromX(b * cellSize + cellSize / 2);
-                        tLeft.setFromY(60 + a * cellSize + cellSize / 2);
-                        tLeft.setToX(b * cellSize - cellSize / 2);
-                        pt.getChildren().add(tLeft);
-                    }
-
-                    if(b < n - 1)
-                    {
-                        Sphere s = orb.makeOrb(cellSize);
-                        TranslateTransition tRight = new TranslateTransition(Duration.millis(1000), s);
-                        tRight.setFromX(b * cellSize + cellSize / 2);
-                        tRight.setFromY(60 + a * cellSize + cellSize / 2);
-                        tRight.setToX(b * cellSize + 3 * cellSize / 2);
-                        pt.getChildren().add(tRight);
-                    }
-                }
-
-                pt.play();
-
-                pt.setOnFinished(e -> { });
-            }
-        }
-        */
-
-        BurstAnimation(playerNo, 1, groupMatrix, root);
-
-        return true;
+        return BurstAnimation(playerNo, 1, groupMatrix, root);
     }
 
-    public void BurstAnimation(int playerNo, int depth, Group[][] groupMatrix, Pane root)
+    public int BurstAnimation(int playerNo, int depth, Group[][] groupMatrix, Pane root)
     {
+        //System.out.println("[?] "+ playerNo+" doing animation");
         if(!explosionQueue.isEmpty())
         {
             /*
@@ -288,7 +223,6 @@ public class Board implements Serializable
                 if(explosionQueue.isEmpty())
                     break;
             }
-
             pt.setOnFinished(e ->
             {
                 while(!cellsToExplode.isEmpty())
@@ -296,16 +230,20 @@ public class Board implements Serializable
                     Cell explodeCell = cellsToExplode.remove();
                     explode(explodeCell.getRow(), explodeCell.getCol(), playerNo, explodeCell.getExplodeDepth() + 1, groupMatrix, root);
                 }
-                BurstAnimation(playerNo, depth + 1, groupMatrix, root);
+                x = BurstAnimation(playerNo, depth + 1, groupMatrix, root);
             });
 
             pt.play();
+            return x;
         }
 
         else
         {
-            players[playerNo].getCurrentGame().endMove();
+            //System.out.println("[-] " + this.getMyGame().getCurrentPlayerNo() + " is ending its Turn");
+            return this.getMyGame().endMove(playerNo);
+            //players[playerNo].getCurrentGame().endMove();
         }
+        //return 0;
     }
 
     private void explosiveAddOrb(int i, int j, int playerNo, int explodeDepth, Group[][] groupMatrix, Pane root)
@@ -316,10 +254,7 @@ public class Board implements Serializable
         {
             if(cell.getPlayerNoInControl() != -1)
             {
-                //cell.getPlayerInControl().decrementNumberOfCellsOccupied();
                 players[cell.getPlayerNoInControl()].decrementNumberOfCellsOccupied();
-                //if(cell.getPlayerInControl().getNumberOfCellsOccupied() == 0)
-                    //cell.getPlayerInControl().kill();
             }
             cell.setPlayerNoInControl(playerNo);
             players[playerNo].incrementNumberOfCellsOccupied();
@@ -365,7 +300,6 @@ public class Board implements Serializable
             root.getChildren().add(groupMatrix[i][j]);
         }
     }
-
 
     public void display(Group[][] groupMatrix, Pane root)
     {
@@ -414,28 +348,4 @@ public class Board implements Serializable
             }
         }
     }
-
-    // To be removed
-    /*
-    public void display()
-    {
-        for(int i = 0; i < m; i++)
-        {
-            for(int j = 0; j < n; j++)
-            {
-                System.out.print(board[i][j].getNumberOfOrbs());
-                if(board[i][j].getPlayerNoInControl() == 0)
-                    System.out.print("a ");
-                else if(board[i][j].getPlayerNoInControl() == 1)
-                    System.out.print("b ");
-                else if(board[i][j].getPlayerNoInControl() == 2)
-                    System.out.print("c ");
-                else
-                    System.out.print("_ ");
-            }
-            System.out.println();
-        }
-        System.out.println();
-    }
-    */
 }

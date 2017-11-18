@@ -13,8 +13,6 @@ public class Player implements Serializable
     private boolean alive;
     private Game currentGame;
     private int playerNumber;
-    //private boolean fairChance;
-
 
     public Player(String colour, Game game, int p)
     {
@@ -23,7 +21,6 @@ public class Player implements Serializable
         alive = true;
         currentGame = game;
         playerNumber = p;
-        //fairChance = false;
     }
 
     public int getPlayerNumber()
@@ -35,16 +32,6 @@ public class Player implements Serializable
     {
         return currentGame;
     }
-
-    // public boolean gotFairChance()
-    // {
-    //     return fairChance;
-    // }
-
-    // public void setFairChance(boolean chance)
-    // {
-    //     fairChance = chance;
-    // }
 
     public String getColour()
     {
@@ -96,33 +83,15 @@ public class Player implements Serializable
         numberOfCellsOccupied += num;
     }
 
-    public boolean takeTurn(int i, int j, Group[][] groupMatrix, Pane root)
-    {
-        if(currentGame.getBoard().addOrb(i, j, playerNumber, groupMatrix, root))
-        {
-            //fairChance = true;
-            //currentGame.saveState();
-            return true;
-        }
+    // public boolean takeTurn(int i, int j, Group[][] groupMatrix, Pane root)
+    // {
+    //     if(currentGame.getBoard().addOrb(i, j, playerNumber, groupMatrix, root))
+    //     {
+    //         return true;
+    //     }
 
-        return false;
-
-        /*
-        // To be removed.
-        Scanner input = new Scanner(System.in);
-        boolean done = false;
-        while(!done)
-        {
-            System.out.println("Enter i and j");
-            int i = input.nextInt();
-            int j = input.nextInt();
-            if(!currentGame.getBoard().addOrb(i, j, this))
-                System.out.println("Try again");
-            else
-                done = true;
-        }
-        */
-    }
+    //     return false;
+    // }
 
     // public void undoTurn(Group[][] groupMatrix, Pane root)
     // {

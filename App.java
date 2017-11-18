@@ -11,10 +11,14 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Label;
+import javafx.scene.control.RadioButton;
+import javafx.scene.control.Toggle;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -30,32 +34,38 @@ import javafx.scene.text.Text;
 import javafx.scene.effect.Reflection;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 
+import java.io.*;
 
 public class App extends Application
 {
-    private int m = 9;
-    private int n = 6;
-    private final double cellSize = 900.0 / m;
-    private int numberOfPlayers = 3;
+    private int m = 15;
+    private int n = 10;
+    private double cellSize = 900.0 / m;
+    private int numberOfPlayers = 4;
     private Game currentGame;
-    //private boolean gameInProgress = true;
     private int winner = 0;
     private Scene scene;
     private Pane root;
     private CellTile[][] cellMatrix = new CellTile[m][n];
     private Group[][] groupMatrix = new Group[m][n];
 
-    // To be removed
-    //String[] colours = {"#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF", "#880088", "#000000"};
     String[] colours = {"0xff0000","0x00ff00","0x0000ff","0xff00ff","0xffff00","0x00ffff","0x00ff00","0x808080"};
-
 
     @Override
     public void start(Stage primaryStage) throws Exception
     {
         primaryStage.setTitle("Chain Reaction");
+        primaryStage.setResizable(false);
         homePage(primaryStage);
+    }
+
+    @Override
+    public void stop()
+    {
+        currentGame.exit();
     }
 
     public void homePage(Stage primaryStage)
@@ -72,22 +82,57 @@ public class App extends Application
         VBox vboxName = new VBox();
         vboxName.setAlignment(Pos.CENTER);
         vboxName.getChildren().add(name);
-        vboxName.setPrefHeight(330);
+        vboxName.setPrefHeight(230);
 
-        VBox vboxButtons = new VBox(50);
+        VBox vboxNumPlayers = new VBox(10);
+        vboxNumPlayers.setAlignment(Pos.CENTER);
+        ComboBox<String> myComboBox = new ComboBox<String>();
+        myComboBox.getItems().addAll("2 Players", "3 Players", "4 Players", "5 Players", "6 Players", "7 Players", "8 Players");
+        myComboBox.setValue("2 Players");
+        numberOfPlayers = (Character.getNumericValue(myComboBox.getValue().charAt(0)));
+
+        VBox vboxButtons = new VBox(20);
         vboxButtons.setAlignment(Pos.CENTER);
         Button startbtn = new Button ("Start");
-        startbtn.setOnAction(e -> gameBegin(primaryStage) );
-        Button resumebtn = new Button ("Resume");
-        //resumebtn.setOnAction(e -> gameBegin(primaryStage) );
+        startbtn.setOnAction(e -> 
+            {
+                numberOfPlayers = (Character.getNumericValue(myComboBox.getValue().charAt(0)));
+                gameBegin(primaryStage, false);
+            });
+        vboxButtons.getChildren().add(startbtn);
+        
+        if(new File("gameData.ser").isFile())
+        {
+            Button resumebtn = new Button ("Resume");
+            resumebtn.setOnAction(e -> gameBegin(primaryStage, true) );
+            vboxButtons.getChildren().add(resumebtn);
+        }
+
         Button settingsbtn = new Button ("Settings");
         settingsbtn.setOnAction(e -> settings(primaryStage) );
-        vboxButtons.getChildren().addAll(startbtn, resumebtn, settingsbtn);
+        vboxButtons.getChildren().add(settingsbtn);
+        
+        VBox vboxGridSize = new VBox(10);
+        vboxGridSize.setAlignment(Pos.CENTER);
+
+        Label labelGridSz = new Label("Choose Grid Size");
+        ToggleGroup toggleGSize = new ToggleGroup();
+        toggleGSize.selectedToggleProperty().addListener(new setGridSize());
+        RadioButton radioSmallG = new RadioButton("9 x 6");
+        RadioButton radioBigG = new RadioButton("15 x 10");
+        radioSmallG.setSelected(true);
+        radioSmallG.setToggleGroup(toggleGSize);
+        radioBigG.setToggleGroup(toggleGSize);
+        vboxGridSize.getChildren().addAll(labelGridSz, radioSmallG, radioBigG);
+
+        
+        vboxNumPlayers.getChildren().add(myComboBox);
+
+        vboxButtons.getChildren().addAll(vboxGridSize, vboxNumPlayers);
+
+        vboxButtons.setPrefHeight(230);
 
         root.setTop(vboxName);
-        // root.setBottom();
-        // root.setLeft();
-        // root.setRight();
         root.setCenter(vboxButtons);
 
         Scene scene = new Scene(root, 600.0, 970.0);
@@ -95,7 +140,7 @@ public class App extends Application
         primaryStage.show();
     }
 
-    public void gameBegin(Stage primaryStage)
+    public void gameBegin(Stage primaryStage, boolean isThereSavedGame)
     {
         root = new Pane();
         root.setPrefSize(600.0, 970.0);
@@ -109,7 +154,7 @@ public class App extends Application
         MenuItem menuRestart = new MenuItem("Restart");
         menuRestart.setOnAction((ActionEvent event) -> { currentGame.restart(groupMatrix, root, cellSize); });
         MenuItem menuExit = new MenuItem("Exit");
-        //menuExit.setOnAction((ActionEvent event) -> { homePage(primaryStage); });
+        menuExit.setOnAction((ActionEvent event) -> { currentGame.exit(); homePage(primaryStage); });
         fileMenu.getItems().addAll(menuRestart ,menuExit);
 
         Menu editMenu = new Menu("Edit");
@@ -143,37 +188,37 @@ public class App extends Application
                 rotate.setInterpolator(Interpolator.LINEAR);
                 rotate.play();
                 root.getChildren().add(groupMatrix[i][j]);
-
-                /*
-                if(i == 5 && j == 5)
-                {
-                    groupMatrix[i][j].getChildren().clear();
-                    Cluster c1 = new Cluster("#FF0000", 3);
-                    Group g1 = c1.createCluster(cellSize);
-                    groupMatrix[i][j] = g1;
-                    groupMatrix[i][j].setTranslateX(j * cellSize);
-                    groupMatrix[i][j].setTranslateY(i * cellSize);
-                    rotate = new RotateTransition(Duration.millis(1000), groupMatrix[i][j]);
-                    rotate.setByAngle(360);
-                    rotate.setCycleCount(Timeline.INDEFINITE);
-                    rotate.setInterpolator(Interpolator.LINEAR);
-                    rotate.play();
-                    root.getChildren().add(groupMatrix[i][j]);
-                }
-                */
-
-                /*
-                Cluster c1 = new Cluster("#FF0000", 3);
-                Group g1 = c.createCluster(cellSize);
-                groupMatrix[i][j] = g1;
-                root.getChildren().add(groupMatrix[i][j]);
-                */
             }
 
         Scene scene = new Scene(root);
-        currentGame = new Game(m, n, numberOfPlayers, colours, cellSize);
+        if(isThereSavedGame == false)
+            currentGame = new Game(m, n, numberOfPlayers, colours, cellSize);
+        else
+        {
+            try
+            {
+                String filenameGame = "gameData.ser";
+                FileInputStream fileGame = new FileInputStream (filenameGame);
+
+                ObjectInputStream inGame = new ObjectInputStream (fileGame);
+                
+                currentGame = (Game)inGame.readObject();
+                
+                inGame.close();
+                
+                fileGame.close();
+                currentGame.getBoard().display(groupMatrix,root);
+            }
+            catch (IOException e)
+            {
+                System.out.println(e);
+            }
+            catch (ClassNotFoundException ex)
+            {
+                System.out.println("ClassNotFoundException" +" is caught");
+            }
+        }
         primaryStage.setScene(scene);
-        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
@@ -195,15 +240,33 @@ public class App extends Application
         ColorPicker[] cp = new ColorPicker[8];
         Text[] txt = new Text[8];
         vboxSettings.getChildren().add(heading);
-        //String[] colours = {"FF0000", "008000", "000080", "FF00FF", "FFFF00", "00FFFF", "00FF00", "808080"};
         for (int i = 0; i < 8 ;i++ )
         {
+            final int ij = i;
             txt[i] = new Text("Player "+Integer.toString(i+1));
-            cp[i] = new ColorPicker(Color.web("#"+colours[i]));
-            System.out.println(cp[i].getValue());
+            cp[i] = new ColorPicker(Color.web(colours[i]));
+            String hex1 = "0x" + Integer.toHexString(cp[i].getValue().hashCode());
             cp[i].setMinHeight(30.0);
             cp[i].setOnAction((ActionEvent e) -> {
-                /*txt[i].setFill(cp[i].getValue());*/ /*System.out.println(cp[i].getValue()); */
+                String clr = "0x" + Integer.toHexString(cp[ij].getValue().hashCode());
+                boolean flag = true;
+                for(int ptr = 0; ptr < 8; ptr++)
+                {
+                    if(clr.equals(colours[ptr]))
+                    {
+                        flag = false;
+                        break;
+                    }
+                }
+                if(flag)
+                {
+                    colours[ij] = clr;
+                }
+                else
+                {
+                    cp[ij] = new ColorPicker(Color.web(colours[ij]));
+                    cp[ij].setMinHeight(30.0);
+                }
             } );
             vboxSettings.getChildren().addAll(cp[i],txt[i]);
         }
@@ -215,7 +278,7 @@ public class App extends Application
 
         Scene settingspage = new Scene(root);
         primaryStage.setScene(settingspage);
-        //primaryStage.show();
+        primaryStage.show();
     }
 
     private class CellTile extends StackPane
@@ -273,6 +336,28 @@ public class App extends Application
                 //System.out.println("Round No : "+ currentGame.currentRound);
                 //System.out.println();
             });
+        }
+    }
+
+    private class setGridSize implements ChangeListener<Toggle>
+    {
+        @Override
+        public void changed(ObservableValue<? extends Toggle> observable, Toggle oldValue, Toggle newValue)
+        {    
+            RadioButton rb = (RadioButton) newValue;
+            String txt = rb.getText();
+            if(txt.equals("9 x 6"))
+            {
+                m = 9;
+                n = 6;
+                cellSize = 900.0 / m;
+            }
+            else
+            {
+                m = 15;
+                n = 10;
+                cellSize = 900.0 / m;
+            }
         }
     }
 
