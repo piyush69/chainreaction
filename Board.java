@@ -3,6 +3,8 @@ package chainreaction;
 import javafx.animation.*;
 import javafx.scene.Group;
 import javafx.scene.Scene;
+import javafx.scene.control.Label;
+import javafx.scene.paint.Color;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Pane;
 import javafx.scene.shape.Sphere;
@@ -277,6 +279,12 @@ public class Board implements Serializable
             rotate.play();
             root.getChildren().add(groupMatrix[i][j]);
 
+            Label pName = new Label("Player "+Integer.toString(playerNo + 1));
+            pName.setTextFill(Color.web(players[playerNo].getColour()));
+            pName.setTranslateX(250);
+            pName.setTranslateY(30);
+            //root.getChildren().add(pName);
+
             cell.setExplodeDepth(explodeDepth);
             explosionQueue.add(cell);
         }
@@ -298,6 +306,12 @@ public class Board implements Serializable
             rotate.setInterpolator(Interpolator.LINEAR);
             rotate.play();
             root.getChildren().add(groupMatrix[i][j]);
+
+            Label pName = new Label("Player "+Integer.toString(playerNo + 1));
+            pName.setTextFill(Color.web(players[playerNo].getColour()));
+            pName.setTranslateX(250);
+            pName.setTranslateY(30);
+            //root.getChildren().add(pName);
         }
     }
 

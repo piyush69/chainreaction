@@ -337,6 +337,7 @@ public class Game implements Serializable
         currentPlayer = 0;
         currentVersion = 0;
         currentRound = 0;
+        gameInProgress = true;
         board.display(groupMatrix, root);
     }
 
@@ -350,6 +351,7 @@ public class Game implements Serializable
                 String filenameBoard = "gameData.ser";
                 FileOutputStream fileBoard = new FileOutputStream (filenameBoard);
                 ObjectOutputStream outBoard = new ObjectOutputStream (fileBoard);
+                currentVersion = 0;
                 outBoard.writeObject(this);
                 outBoard.close();
                 fileBoard.close();

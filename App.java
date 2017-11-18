@@ -44,7 +44,7 @@ public class App extends Application
     private int m = 15;
     private int n = 10;
     private double cellSize = 900.0 / m;
-    private int numberOfPlayers = 4;
+    private int numberOfPlayers = 2;
     private Game currentGame;
     private int winner = 0;
     private Scene scene;
@@ -52,7 +52,7 @@ public class App extends Application
     private CellTile[][] cellMatrix = new CellTile[m][n];
     private Group[][] groupMatrix = new Group[m][n];
 
-    String[] colours = {"0xff0000","0x00ff00","0x0000ff","0xff00ff","0xffff00","0x00ffff","0x00ff00","0x808080"};
+    String[] colours = {"0xff0000ff", "0x008000ff", "0x0000ffff", "0xffff00ff", "0xffc0cbff", "0xadd8e6ff", "0xff00ffff", "0x000000ff"};
 
     @Override
     public void start(Stage primaryStage) throws Exception
@@ -88,12 +88,14 @@ public class App extends Application
         vboxNumPlayers.setAlignment(Pos.CENTER);
         ComboBox<String> myComboBox = new ComboBox<String>();
         myComboBox.getItems().addAll("2 Players", "3 Players", "4 Players", "5 Players", "6 Players", "7 Players", "8 Players");
-        myComboBox.setValue("2 Players");
-        numberOfPlayers = (Character.getNumericValue(myComboBox.getValue().charAt(0)));
+        myComboBox.setValue(Integer.toString(numberOfPlayers)+" Players");
+        //numberOfPlayers = (Character.getNumericValue(myComboBox.getValue().charAt(0)));
 
         VBox vboxButtons = new VBox(20);
         vboxButtons.setAlignment(Pos.CENTER);
         Button startbtn = new Button ("Start");
+        startbtn.setPrefHeight(60);
+        startbtn.setPrefWidth(100);
         startbtn.setOnAction(e -> 
             {
                 numberOfPlayers = (Character.getNumericValue(myComboBox.getValue().charAt(0)));
@@ -104,11 +106,18 @@ public class App extends Application
         if(new File("gameData.ser").isFile())
         {
             Button resumebtn = new Button ("Resume");
-            resumebtn.setOnAction(e -> gameBegin(primaryStage, true) );
+            resumebtn.setPrefHeight(60);
+            resumebtn.setPrefWidth(100);
+            resumebtn.setOnAction(e -> 
+                {
+                    gameBegin(primaryStage, true);
+                });
             vboxButtons.getChildren().add(resumebtn);
         }
 
         Button settingsbtn = new Button ("Settings");
+        settingsbtn.setPrefHeight(60);
+        settingsbtn.setPrefWidth(100);
         settingsbtn.setOnAction(e -> settings(primaryStage) );
         vboxButtons.getChildren().add(settingsbtn);
         
@@ -120,7 +129,10 @@ public class App extends Application
         toggleGSize.selectedToggleProperty().addListener(new setGridSize());
         RadioButton radioSmallG = new RadioButton("9 x 6");
         RadioButton radioBigG = new RadioButton("15 x 10");
-        radioSmallG.setSelected(true);
+        if(m==9 && n==6)
+            radioSmallG.setSelected(true);
+        else
+            radioBigG.setSelected(true);
         radioSmallG.setToggleGroup(toggleGSize);
         radioBigG.setToggleGroup(toggleGSize);
         vboxGridSize.getChildren().addAll(labelGridSz, radioSmallG, radioBigG);
@@ -190,7 +202,6 @@ public class App extends Application
                 root.getChildren().add(groupMatrix[i][j]);
             }
 
-        Scene scene = new Scene(root);
         if(isThereSavedGame == false)
             currentGame = new Game(m, n, numberOfPlayers, colours, cellSize);
         else
@@ -218,13 +229,22 @@ public class App extends Application
                 System.out.println("ClassNotFoundException" +" is caught");
             }
         }
+
+        Label pName = new Label("Player "+Integer.toString(currentGame.getCurrentPlayerNo() + 1));
+        pName.setTextFill(Color.web(colours[currentGame.getCurrentPlayerNo()]));
+        pName.setTranslateX(250);
+        pName.setTranslateY(30);
+        //root.getChildren().add(pName);
+
+        Scene scene = new Scene(root);
+
         primaryStage.setScene(scene);
         primaryStage.show();
     }
 
     public void settings(Stage primaryStage)
     {
-        primaryStage.setTitle("Chain Reaction - Settings");
+        primaryStage.setTitle("Chain Reaction");
 
         BorderPane root = new BorderPane();
         root.setPrefSize(600.0, 970.0);
