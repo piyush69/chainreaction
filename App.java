@@ -51,6 +51,7 @@ public class App extends Application
     private Pane root;
     private CellTile[][] cellMatrix = new CellTile[m][n];
     private Group[][] groupMatrix = new Group[m][n];
+    private boolean gameHasBegun = false;
 
     String[] colours = {"0xff0000ff", "0x008000ff", "0x0000ffff", "0xffff00ff", "0xffc0cbff", "0xadd8e6ff", "0xff00ffff", "0x000000ff"};
 
@@ -65,7 +66,8 @@ public class App extends Application
     @Override
     public void stop()
     {
-        currentGame.exit();
+        if(gameHasBegun)
+            currentGame.exit();
     }
 
     public void homePage(Stage primaryStage)
@@ -154,6 +156,7 @@ public class App extends Application
 
     public void gameBegin(Stage primaryStage, boolean isThereSavedGame)
     {
+        gameHasBegun = true;
         root = new Pane();
         root.setPrefSize(600.0, 970.0);
 
